@@ -1,0 +1,26 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "sula-rewards-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "vars": {
+    // URL pública de la app (GitHub Pages): para los enlaces de los correos, de las tarjetas y de los pases.
+    "APP_URL": "https://crisio.github.io/sula-rewards/",
+    "ALLOWED_ORIGINS": "https://crisio.github.io,http://localhost:5173",
+    // "resend" envía con tu dominio; "smtp" por Gmail; "log" solo los imprime (desarrollo local)
+    "EMAIL_MODE": "resend",
+    "EMAIL_FROM": "Sula Rewards <hola@cristopherpineda.com>",
+    // Apple Wallet (ver docs/wallet.md). Sin estos datos y sus secretos, el botón de Apple Wallet no aparece.
+    "APPLE_PASS_TYPE_ID": "",
+    "APPLE_TEAM_ID": "",
+    // Google Wallet (ver docs/wallet.md). Sin el emisor y sus secretos, el botón de Google Wallet no aparece.
+    "GOOGLE_WALLET_ISSUER_ID": ""
+  },
+  // Al publicar por primera vez, Cloudflare crea la base de datos automáticamente.
+  "d1_databases": [{ "binding": "DB", "database_name": "sula-rewards", "migrations_dir": "migrations" }]
+  // Secretos (no van aquí): AUTH_SECRET, RESEND_API_KEY (o GMAIL_USER y GMAIL_APP_PASSWORD si usas EMAIL_MODE "smtp")
+  // Apple Wallet: APPLE_PASS_CERT, APPLE_PASS_KEY y APPLE_WWDR_CERT (PEM)
+  // Google Wallet: GOOGLE_SA_EMAIL y GOOGLE_SA_KEY (la llave privada PEM de la cuenta de servicio)
+}

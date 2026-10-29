@@ -1,0 +1,793 @@
+/* Sula Rewards — tokens y componentes. Colores de los programas: sellos (violeta), puntos (naranja),
+   cashback (verde) y gift cards (grafito). */
+
+:root {
+  --bg: #f1ecfb;
+  --surface: #ffffff;
+  --surface-2: #f7f4fd;
+  --ink: #1d1b26;
+  --muted: #6b6880;
+  --line: #e2dcf0;
+  --focus: #4f3fe0;
+  --danger: #c8323c;
+  --success: #15803d;
+  --sellos: #4f3fe0;
+  --puntos: #f2820f;
+  --cashback: #16a34a;
+  --giftcard: #2e2b38;
+  --radius: 18px;
+  --shadow: 0 1px 2px rgb(29 27 38 / 6%), 0 8px 24px rgb(29 27 38 / 8%);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14121b;
+    --surface: #1f1c29;
+    --surface-2: #26222f;
+    --ink: #f3f0fa;
+    --muted: #a7a2b8;
+    --line: #34303f;
+    --focus: #9d93ff;
+    --danger: #ff7b83;
+    --success: #4ade80;
+    --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 8px 24px rgb(0 0 0 / 30%);
+    color-scheme: dark;
+  }
+
+  /* Los chips oscuros necesitan borde para no perderse en el fondo */
+  .chip-dark,
+  .chip-giftcard {
+    box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 22%);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.15;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.page {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 16px 64px;
+}
+
+.narrow {
+  max-width: 560px;
+}
+
+.stack {
+  display: grid;
+  gap: 16px;
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.spread {
+  justify-content: space-between;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.small {
+  font-size: 14px;
+}
+
+.center {
+  text-align: center;
+}
+
+/* Barra superior */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 0;
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: -0.03em;
+  text-decoration: none;
+}
+
+.logo small {
+  display: block;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-top: -4px;
+}
+
+/* Tarjetas de superficie */
+.panel {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+}
+
+.panel h2 {
+  font-size: 20px;
+  margin-bottom: 4px;
+}
+
+/* Botones */
+.btn {
+  appearance: none;
+  border: 0;
+  border-radius: 999px;
+  padding: 12px 20px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  background: var(--surface-2);
+  color: var(--ink);
+  min-height: 44px;
+  transition: transform 0.08s ease, filter 0.15s ease;
+}
+
+.btn:hover {
+  filter: brightness(0.97);
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.btn-big {
+  font-size: 20px;
+  padding: 18px 28px;
+  min-height: 64px;
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1.5px solid var(--line);
+}
+
+.link-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--focus);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* Chips como los de la valla */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-weight: 700;
+  color: #fff;
+  font-size: 15px;
+  border: 0;
+  font-family: inherit;
+}
+
+.chip-sellos {
+  background: var(--sellos);
+}
+
+.chip-puntos {
+  background: var(--puntos);
+}
+
+.chip-cashback {
+  background: var(--cashback);
+}
+
+.chip-giftcard {
+  background: var(--giftcard);
+}
+
+.chip-dark {
+  background: #111;
+}
+
+.chip-light {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* Selector de tipo de programa */
+.type-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.type-option {
+  border: 2px solid var(--line);
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 12px;
+  font: inherit;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.type-option strong {
+  display: block;
+}
+
+.type-option[aria-pressed='true'] {
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+
+/* Formularios */
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.field > span {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.input {
+  font: inherit;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1.5px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  min-height: 48px;
+  width: 100%;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--focus);
+}
+
+.input-prefix {
+  display: flex;
+  align-items: stretch;
+}
+
+.input-prefix > span {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  border: 1.5px solid var(--line);
+  border-right: 0;
+  border-radius: 12px 0 0 12px;
+  background: var(--surface-2);
+  font-weight: 600;
+}
+
+.input-prefix > .input {
+  border-radius: 0 12px 12px 0;
+}
+
+.input-suffix {
+  display: flex;
+  align-items: stretch;
+}
+
+.input-suffix > .input {
+  border-radius: 12px 0 0 12px;
+}
+
+.input-suffix > span {
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  border: 1.5px solid var(--line);
+  border-left: 0;
+  border-radius: 0 12px 12px 0;
+  background: var(--surface-2);
+  font-weight: 600;
+}
+
+.code-input {
+  font-size: 28px;
+  letter-spacing: 0.3em;
+  text-align: center;
+  font-weight: 700;
+}
+
+.swatches {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.swatch {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 3px solid var(--surface);
+  box-shadow: 0 0 0 1.5px var(--line);
+  cursor: pointer;
+}
+
+.swatch[aria-pressed='true'] {
+  box-shadow: 0 0 0 3px var(--ink);
+}
+
+.notice {
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: var(--surface-2);
+  font-size: 15px;
+}
+
+.notice-error {
+  background: color-mix(in srgb, var(--danger) 12%, var(--surface));
+  color: var(--danger);
+}
+
+.notice-success {
+  background: color-mix(in srgb, var(--success) 14%, var(--surface));
+  color: var(--success);
+  font-weight: 600;
+}
+
+/* La tarjeta del Wallet */
+.wcard {
+  --card: var(--sellos);
+  background: var(--card);
+  color: #fff;
+  border-radius: 20px;
+  padding: 18px 20px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--card) 35%, transparent);
+  position: relative;
+  overflow: hidden;
+}
+
+.wcard-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.wcard-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 17px;
+  min-width: 0;
+  flex: 1;
+}
+
+.wcard-brand span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wcard-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: rgb(255 255 255 / 92%);
+  color: var(--card);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+
+.wcard-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  opacity: 0.85;
+  text-transform: uppercase;
+}
+
+.wcard-value {
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.1;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.wcard-stamps {
+  display: grid;
+  grid-template-columns: repeat(var(--per-row, 8), 1fr);
+  gap: 8px;
+  background: rgb(255 255 255 / 10%);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.stamp {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px dashed rgb(255 255 255 / 55%);
+  display: grid;
+  place-items: center;
+}
+
+.stamp.filled {
+  background: #fff;
+  border: 0;
+  color: var(--card);
+}
+
+.stamp svg {
+  width: 55%;
+  height: 55%;
+}
+
+.wcard-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.wcard-foot strong {
+  display: block;
+  font-size: 16px;
+}
+
+.wcard-foot > div:last-child {
+  text-align: right;
+}
+
+/* Pila de tarjetas (como en el Wallet): de las de atrás solo se ve el encabezado */
+.wallet-stack .wcard.compact {
+  min-height: 96px;
+  align-content: start;
+}
+
+.wallet-stack .wcard + .wcard {
+  margin-top: -34px;
+}
+
+.phone {
+  background: #111018;
+  border-radius: 44px;
+  padding: 14px;
+  box-shadow: 0 30px 60px rgb(29 27 38 / 25%);
+  width: 100%;
+  max-width: 380px;
+  margin: 0 auto;
+  color: #fff;
+}
+
+.phone-screen {
+  background: #000;
+  border-radius: 32px;
+  padding: 18px 14px 22px;
+}
+
+.phone-status {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0 8px 14px;
+}
+
+.phone-title {
+  font-size: 28px;
+  font-weight: 800;
+  padding: 0 6px 12px;
+}
+
+/* QR */
+.qr-box {
+  background: #fff;
+  border-radius: 16px;
+  padding: 14px;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  color: #1d1b26;
+}
+
+.qr-box img {
+  width: 100%;
+  max-width: 220px;
+  image-rendering: pixelated;
+}
+
+.qr-code {
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  font-size: 15px;
+}
+
+/* Botones de Wallet */
+.wallet-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 52px;
+  border-radius: 14px;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  border: 0;
+  width: 100%;
+}
+
+.wallet-apple {
+  background: #000;
+  color: #fff;
+}
+
+.wallet-google {
+  background: #fff;
+  color: #1f1f1f;
+  box-shadow: inset 0 0 0 1.5px #c9c9c9;
+}
+
+/* Listas */
+.list {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--surface-2);
+  text-decoration: none;
+}
+
+.list-item strong {
+  display: block;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  flex: none;
+}
+
+.badge {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--surface-2);
+}
+
+.stat {
+  display: grid;
+}
+
+.stat b {
+  font-size: 24px;
+}
+
+.grid-2 {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+/* Página de inicio */
+.hero {
+  display: grid;
+  gap: 40px;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  align-items: center;
+  padding: 24px 0 56px;
+}
+
+.hero h1 {
+  font-size: clamp(36px, 6vw, 60px);
+  font-weight: 800;
+}
+
+.hero h1 em {
+  font-style: normal;
+  color: var(--focus);
+}
+
+.hero p {
+  font-size: 18px;
+  color: var(--muted);
+  max-width: 34ch;
+}
+
+.section {
+  padding: 40px 0;
+}
+
+.section > h2 {
+  font-size: clamp(26px, 4vw, 36px);
+  margin-bottom: 20px;
+}
+
+.steps {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  counter-reset: paso;
+}
+
+.steps .panel::before {
+  counter-increment: paso;
+  content: counter(paso);
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--bg);
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+
+.types {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.footer {
+  border-top: 1px solid var(--line);
+  padding: 24px 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: var(--bg);
+  padding: 14px 22px;
+  border-radius: 999px;
+  font-weight: 600;
+  box-shadow: var(--shadow);
+  z-index: 10;
+  max-width: calc(100% - 32px);
+  text-align: center;
+}
+
+.scanner video {
+  width: 100%;
+  border-radius: var(--radius);
+  background: #000;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+@media (max-width: 760px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+    padding-top: 8px;
+  }
+
+  .wcard-value {
+    font-size: 22px;
+  }
+}
+
+/* Cartel para imprimir y pegar en el mostrador (Panel → Imprimir cartel) */
+.print-only {
+  display: none;
+}
+
+@media print {
+  body {
+    background: #fff;
+    color: #000;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: grid;
+    gap: 24px;
+    justify-items: center;
+    text-align: center;
+    padding: 40px;
+  }
+
+  .print-only img {
+    width: 9cm;
+    height: 9cm;
+  }
+
+  .print-only h1 {
+    font-size: 40px;
+  }
+}

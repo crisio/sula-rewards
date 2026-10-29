@@ -1,0 +1,3 @@
+# Copia este archivo a .dev.vars para correr la API en local (npm run dev).
+AUTH_SECRET=cambia-esto-por-algo-largo-y-aleatorio-de-32+
+EMAIL_MODE=log
