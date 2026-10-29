@@ -176,7 +176,7 @@ struct HomeView: View {
     }
 }
 
-/// El QR del mostrador: el cliente lo escanea, pone su nombre y su celular y guarda la tarjeta en su Wallet.
+/// El QR del mostrador (en la app no se nombra Google Wallet: regla 2.3.10 de Apple): el cliente lo escanea, pone su nombre y su celular y guarda la tarjeta en su Wallet.
 struct JoinPosterView: View {
     let business: Business
     @State private var qr: UIImage?
@@ -188,7 +188,7 @@ struct JoinPosterView: View {
         VStack(alignment: .leading, spacing: 14) {
             VStack(alignment: .leading, spacing: 4) {
                 SectionTitle("Cartel para el mostrador")
-                FinePrint("Tus clientes escanean este QR, ponen su nombre y celular y guardan su tarjeta en Apple Wallet o Google Wallet.")
+                FinePrint("Tus clientes escanean este QR, ponen su nombre y celular y guardan su tarjeta en el Wallet de su teléfono.")
             }
             if let qr {
                 Image(uiImage: qr)
@@ -243,7 +243,7 @@ struct JoinPosterView: View {
                 .interpolation(.none)
                 .resizable()
                 .frame(width: 640, height: 640)
-            Text("Tu tarjeta se guarda en Apple Wallet o Google Wallet")
+            Text("Tu tarjeta se guarda en el Wallet de tu teléfono")
                 .font(.system(size: 26))
                 .multilineTextAlignment(.center)
         }

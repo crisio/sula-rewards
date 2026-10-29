@@ -1,6 +1,7 @@
 import AVFoundation
 import SwiftUI
 import UIKit
+import Vision
 import VisionKit
 
 /// Escanea el QR de la tarjeta del cliente con la cámara (VisionKit). El QR trae el id de 12 caracteres o un enlace con

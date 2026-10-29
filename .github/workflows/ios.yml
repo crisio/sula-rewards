@@ -23,9 +23,13 @@ jobs:
         run: xcodebuild -version
       - name: Compilar para el simulador
         run: |
+          set -o pipefail
           xcodebuild build \
             -project ios/SulaRewards.xcodeproj \
             -scheme SulaRewards \
             -configuration Debug \
             -destination 'generic/platform=iOS Simulator' \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGNING_ALLOWED=NO 2>&1 | tee "$RUNNER_TEMP/build.log"
+      - name: Errores y avisos del compilador
+        if: always()
+        run: grep -E "(error|warning): " "$RUNNER_TEMP/build.log" | grep "/ios/" | sort -u || echo "Sin errores ni avisos."
