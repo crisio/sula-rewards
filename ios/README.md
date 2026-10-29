@@ -1,12 +1,13 @@
 # Sula Rewards para iOS
 
-App nativa en SwiftUI para los **negocios**: el dueño o el cajero escanea la tarjeta del cliente y suma en caja. Los clientes no
-necesitan app (guardan su tarjeta en el Wallet o la abren en la web). Usa la misma API que el panel web
-(`https://sula-rewards-api.cristopheropineda.workers.dev`).
+App nativa en SwiftUI para **clientes y negocios**. El cliente tiene sus tarjetas de todos los negocios (con el QR para caja y
+«Agregar a Apple Wallet») y Explorar con promociones; el negocio tiene la caja en **Mi negocio**. Usa la misma API que la web
+(`https://sula-rewards-api.cristopheropineda.workers.dev`). Se entra con Apple, con Google o con código por correo
+([docs/login.md](../docs/login.md)).
 
-- Nombre en la App Store: **Sula Rewards para comercios** · en el iPhone: **Sula Rewards**
+- Nombre en la App Store: **Sula Rewards** · en el iPhone: **Sula Rewards**
 - Bundle ID: `com.cristopherpineda.sularewards` · Team ID `3BZ685RYJ3` · iOS 18 o más nuevo · solo iPhone, vertical
-- Modo claro y oscuro, con los colores de la web
+- Capacidad: Sign in with Apple (`SulaRewards.entitlements`) · modo claro y oscuro, con los colores de la web
 
 ## Abrir y correr
 
@@ -33,21 +34,25 @@ Para volver a producción: `xcrun simctl spawn booted defaults delete com.cristo
 
 ## Qué tiene
 
-| Pantalla | Archivo |
+| Pestaña / pantalla | Archivo |
 |---|---|
-| Entrar con código por correo | `Features/Login/LoginView.swift` |
-| Crear el negocio (y cambiarle nombre o giro) | `Features/Business/BusinessForm.swift` |
-| Caja: escanear, escribir el código, programas y el cartel con el QR para unirse | `Features/Home/HomeView.swift` |
+| Entrar con Apple, con Google o con código | `Features/Login/LoginView.swift` · `Core/Auth.swift` |
+| **Tarjetas**: las del cliente, agregar por QR o código | `Features/Wallet/WalletView.swift` (`WalletView`, `AddCardView`) |
+| Una tarjeta: QR para caja, historial, «Agregar a Apple Wallet» | `Features/Wallet/WalletView.swift` (`CustomerCardView`) |
+| **Explorar**: promociones y negocios; reportar u ocultar | `Features/Explore/ExploreView.swift` |
+| Un negocio: sus promociones y «Unirme» a sus programas | `Features/Explore/ExploreView.swift` (`BusinessPublicView`) |
+| **Mi negocio**: registrar el negocio o la caja | `Features/Business/BusinessExtras.swift` · `Features/Home/HomeView.swift` |
 | Escáner de QR (VisionKit) | `Features/Scanner/ScannerView.swift` |
-| Nuevo programa: sellos, puntos, cashback o gift card | `Features/Programs/NewProgramView.swift` |
-| Programa: números, nuevo cliente o venta de gift card, búsqueda | `Features/Programs/ProgramView.swift` |
+| Programas, clientes y gift cards | `Features/Programs/` |
 | Tarjeta en caja: acciones según el tipo, historial, WhatsApp | `Features/Card/StaffCardView.swift` |
-| Perfil: negocio, ayuda, salir y borrar la cuenta | `Features/Profile/ProfileView.swift` |
+| Logo y promociones del negocio | `Features/Business/BusinessExtras.swift` |
+| **Perfil**: tus datos, tu negocio, ocultos, salir y borrar la cuenta | `Features/Profile/ProfileView.swift` |
 
-`Core/` tiene la API (`API.swift`, token Bearer y errores del servidor en español), la sesión (token en el llavero), los negocios
-(`BusinessStore.swift`, el elegido se recuerda en el teléfono), los modelos, los formatos de Honduras (`Format.swift`: lempiras en
-centavos, celulares de 8 dígitos, hora de Tegucigalpa) y el código de la tarjeta (`CardCode.swift`: el QR trae el id de 12
-caracteres o un enlace con `/tarjeta/<id>`). `Design/` tiene los colores, los botones y la tarjeta como se ve en el Wallet.
+`Core/` tiene la API (`API.swift`, token Bearer y errores del servidor en español), la sesión (token en el llavero), las
+tarjetas del cliente (`WalletStore.swift`), los negocios (`BusinessStore.swift`), los modelos, los formatos de Honduras
+(`Format.swift`) y el código de la tarjeta (`CardCode.swift`: el QR trae el id de 12 caracteres, un enlace con
+`/tarjeta/<id>` o el del cartel `/unete/<negocio>`). `Design/` tiene los colores, los botones, el logo del negocio y la
+tarjeta como se ve en el Wallet.
 
 ## CI
 

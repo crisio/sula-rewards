@@ -6,7 +6,7 @@ Wallet sin descargar ninguna app, y en caja le suman con el teléfono.
 
 **App:** https://crisio.github.io/sula-rewards/
 
-## Qué hace hoy (v0.2)
+## Qué hace hoy (v0.3)
 
 Los cambios de cada versión están en [CHANGELOG.md](CHANGELOG.md).
 
@@ -28,9 +28,14 @@ Los cambios de cada versión están en [CHANGELOG.md](CHANGELOG.md).
 - **Google Wallet:** enlace «Guardar en Google Wallet» con el pase firmado; después, cada sello o compra se manda a
   Google y la tarjeta se actualiza sola en el teléfono.
 - **Mandar la tarjeta por WhatsApp** desde caja, con el mensaje ya escrito.
-- **App de iPhone para comercios** (`ios/`, SwiftUI): escanear la tarjeta con la cámara, sumar en caja con hápticos, dar de
-  alta clientes y vender gift cards, crear programas, compartir el cartel con el QR y borrar la cuenta. Los clientes no
-  necesitan app. Ver [ios/README.md](ios/README.md).
+- **App de iPhone para clientes y negocios** (`ios/`, SwiftUI). Ver [ios/README.md](ios/README.md).
+  - El cliente tiene sus tarjetas de todos los negocios, con el QR para caja y «Agregar a Apple Wallet».
+  - En **Explorar** ve las promociones y se une a los programas.
+  - El negocio tiene la caja: escanear y sumar, dar de alta clientes, gift cards, programas, logo y promociones.
+  - Se entra con Apple, con Google o con código ([docs/login.md](docs/login.md)). La app no es obligatoria: el cliente
+    también puede guardar su tarjeta en el Wallet desde la web.
+- **Logo del negocio:** sale en el pase de Apple Wallet y de Google Wallet, en la tarjeta web y en la app.
+- **Promociones:** cada negocio publica hasta 5; se ven en Explorar. Se pueden reportar (con 3 reportes se pausan).
 - **Privacidad y soporte:** `/privacidad.html` y `/soporte.html` (las dos URL que pide la App Store).
 - **Hecho para Honduras:** lempiras (el dinero se guarda en centavos), celulares de 8 dígitos y hora de Honduras.
 
@@ -63,6 +68,7 @@ ios/                 la app de iPhone para comercios (Xcode, SwiftUI)
 public/              privacidad.html y soporte.html
 docs/wallet.md       cómo conseguir los certificados de Apple y la cuenta de Google
 docs/app-store.md    lo que pide Apple para publicar la app de iOS
+docs/login.md        entrar con Apple y con Google (llave .p8 y client ID)
 ```
 
 ## Correr en local

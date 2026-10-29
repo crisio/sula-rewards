@@ -1,5 +1,17 @@
 # Cambios
 
+## 0.3.0 — 29 de octubre de 2026
+
+- La app de iPhone es para clientes y negocios:
+  - **Tarjetas**: las del cliente en todos los negocios, con el QR para caja, el historial y «Agregar a Apple Wallet».
+  - **Explorar**: promociones y negocios; unirse a sus programas con el nombre y el celular del perfil.
+  - **Mi negocio**: la caja de antes, o registrar el negocio.
+- Entrar con Apple, con Google o con código por correo (`docs/login.md`).
+- El negocio sube su logo: sale en el pase de Apple Wallet y de Google Wallet, en la tarjeta web y en la app.
+- Promociones de los negocios (hasta 5 activas), con reportes: con 3 se pausa sola y avisa por correo.
+- Panel web: logo y promociones. Migraciones 0002 y 0003.
+
+
 ## 0.2.0 — 29 de octubre de 2026
 
 - App de iPhone para los comercios (`ios/`): entrar con código, crear el negocio, escanear tarjetas con la cámara, sumar

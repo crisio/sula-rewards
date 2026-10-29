@@ -218,7 +218,7 @@ struct PromotionsView: View {
                 }
             }
             if let body = promotion.body { Text(body).font(.subheadline).foregroundStyle(Theme.ink) }
-            Text(promotion.endsOn.map(Fmt.until) ?? "Sin fecha de fin").font(.footnote).foregroundStyle(Theme.muted)
+            Text(promotion.endsOn.map { Fmt.until($0) } ?? "Sin fecha de fin").font(.footnote).foregroundStyle(Theme.muted)
             HStack(spacing: 10) {
                 if !promotion.isExpired {
                     Button(promotion.isActive ? "Pausar" : "Reactivar") { Task { await toggle(promotion) } }

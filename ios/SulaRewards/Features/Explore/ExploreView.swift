@@ -408,7 +408,7 @@ struct ProfileDetailsView: View {
             }
             .onAppear {
                 name = session.user?.fullName ?? ""
-                phone = session.user?.phone.map(Fmt.phone) ?? ""
+                phone = session.user?.phone.map { Fmt.phone($0) } ?? ""
             }
         }
     }
