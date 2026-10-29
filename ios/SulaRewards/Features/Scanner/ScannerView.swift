@@ -159,6 +159,8 @@ struct QRScanner: UIViewControllerRepresentable {
             isHighlightingEnabled: true
         )
         scanner.delegate = context.coordinator
+        // La cámara arranca cuando la vista ya está en pantalla (en update puede ser muy pronto).
+        Task { if !scanner.isScanning { try? scanner.startScanning() } }
         return scanner
     }
 

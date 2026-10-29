@@ -6,7 +6,7 @@ Wallet sin descargar ninguna app, y en caja le suman con el teléfono.
 
 **App:** https://crisio.github.io/sula-rewards/
 
-## Qué hace hoy (v0.1)
+## Qué hace hoy (v0.2)
 
 Los cambios de cada versión están en [CHANGELOG.md](CHANGELOG.md).
 
@@ -28,6 +28,10 @@ Los cambios de cada versión están en [CHANGELOG.md](CHANGELOG.md).
 - **Google Wallet:** enlace «Guardar en Google Wallet» con el pase firmado; después, cada sello o compra se manda a
   Google y la tarjeta se actualiza sola en el teléfono.
 - **Mandar la tarjeta por WhatsApp** desde caja, con el mensaje ya escrito.
+- **App de iPhone para comercios** (`ios/`, SwiftUI): escanear la tarjeta con la cámara, sumar en caja con hápticos, dar de
+  alta clientes y vender gift cards, crear programas, compartir el cartel con el QR y borrar la cuenta. Los clientes no
+  necesitan app. Ver [ios/README.md](ios/README.md).
+- **Privacidad y soporte:** `/privacidad.html` y `/soporte.html` (las dos URL que pide la App Store).
 - **Hecho para Honduras:** lempiras (el dinero se guarda en centavos), celulares de 8 dígitos y hora de Honduras.
 
 ## Arquitectura (todo en planes gratis)
@@ -35,6 +39,9 @@ Los cambios de cada versión están en [CHANGELOG.md](CHANGELOG.md).
 ```
 Teléfono (React + Vite) ──► GitHub Pages (crisio.github.io/sula-rewards)
         │  token de sesión (Bearer)
+        ▼
+iPhone del comercio (SwiftUI, ios/) ── misma API, mismo token
+        │
         ▼
 Cloudflare Worker  sula-rewards-api (Hono)     ← api/
    ├─ D1 (SQLite)   usuarios, negocios, programas, tarjetas, movimientos
@@ -52,7 +59,10 @@ api/src/             la API
   google.ts          Google Wallet
   images.ts          el ícono y la tira de sellos (PNG)
 api/migrations/      el esquema de la base
+ios/                 la app de iPhone para comercios (Xcode, SwiftUI)
+public/              privacidad.html y soporte.html
 docs/wallet.md       cómo conseguir los certificados de Apple y la cuenta de Google
+docs/app-store.md    lo que pide Apple para publicar la app de iOS
 ```
 
 ## Correr en local
@@ -113,6 +123,12 @@ En **Settings → Secrets and variables → Actions → Variables**, crea `VITE_
 Ver [docs/wallet.md](docs/wallet.md). Sin esa configuración todo funciona igual: la tarjeta vive en la web con su QR y
 los botones de Wallet no aparecen.
 
+### 5. La app de iOS en la App Store
+
+Con la API ya publicada: crea los secretos `REVIEW_EMAIL` y `REVIEW_CODE` (la cuenta para la revisión de Apple), vuelve a
+correr **Deploy API**, y sigue [docs/app-store.md](docs/app-store.md) desde una Mac con Xcode
+(**Product → Archive → Distribute App → App Store Connect**).
+
 ## Pendiente
 
 - **Avisos push de Apple Wallet (APNs):** hoy el iPhone baja la versión nueva al actualizar el pase; con APNs se
@@ -120,5 +136,6 @@ los botones de Wallet no aparecen.
 - **Cajeros con su propia cuenta** (hoy entra solo el dueño del negocio).
 - Anular un movimiento hecho por error, y reportes por día y por cajero.
 - Los botones oficiales «Add to Apple Wallet» y «Add to Google Wallet» (Apple y Google piden usar sus insignias).
-- Límite de altas por hora en `/unete`, términos de uso y aviso de privacidad.
+- Límite de altas por hora en `/unete` y términos de uso.
+- Borrar la cuenta desde el panel web (hoy se hace desde la app de iPhone o pidiéndolo por correo).
 - Dominio propio (con él, `VITE_BASE=/` y actualizar `APP_URL` y `ALLOWED_ORIGINS` en `api/wrangler.jsonc`).

@@ -98,5 +98,5 @@ enum Fmt {
         return dateTimeFormatter.string(from: date)
     }
 
-    private static func isDigit(_ c: Character) -> Bool { c.isASCII && c.isNumber }
+    nonisolated private static func isDigit(_ c: Character) -> Bool { c.isASCII && c.isNumber }
 }
