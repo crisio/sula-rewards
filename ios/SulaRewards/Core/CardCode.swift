@@ -32,8 +32,8 @@ enum CardCode {
 
     enum Scan: Equatable {
         case card(String)
-        /// El QR del cartel del mostrador (/unete/<negocio>), no una tarjeta.
-        case joinPoster
+        /// El QR del cartel del mostrador (/unete/<negocio>): trae el enlace del negocio, no una tarjeta.
+        case joinPoster(String)
         case unknown
     }
 
@@ -44,7 +44,10 @@ enum CardCode {
             let rest = text[range.upperBound...].prefix { $0 != "/" && $0 != "?" && $0 != "#" }
             return id(from: String(rest)).map(Scan.card) ?? .unknown
         }
-        if text.contains("/unete/") { return .joinPoster }
+        if let range = text.range(of: "/unete/") {
+            let slug = text[range.upperBound...].prefix { $0 != "/" && $0 != "?" && $0 != "#" }
+            return slug.isEmpty ? .unknown : .joinPoster(String(slug))
+        }
         return id(from: text).map(Scan.card) ?? .unknown
     }
 }

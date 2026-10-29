@@ -1,4 +1,5 @@
 import CoreImage.CIFilterBuiltins
+import PassKit
 import UIKit
 
 enum Haptics {
@@ -28,5 +29,52 @@ enum WhatsApp {
         let allowed = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~")
         guard let text = message.addingPercentEncoding(withAllowedCharacters: allowed) else { return nil }
         return URL(string: "https://wa.me/\(digits)?text=\(text)")
+    }
+}
+
+enum LogoImage {
+    /// La foto que eligió el dueño, recortada al centro en un cuadrado de 360×360 y en PNG (lo que pide la API).
+    static func squarePNG(from image: UIImage, size: CGFloat = 360) -> Data? {
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        format.opaque = false
+        format.preferredRange = .standard // 8 bits por canal en sRGB (la API no lee PNG de 16 bits de color amplio)
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: size, height: size), format: format)
+        let square = renderer.image { _ in
+            let scale = max(size / image.size.width, size / image.size.height)
+            let width = image.size.width * scale
+            let height = image.size.height * scale
+            image.draw(in: CGRect(x: (size - width) / 2, y: (size - height) / 2, width: width, height: height))
+        }
+        return square.pngData()
+    }
+}
+
+/// Presenta la hoja de Apple Wallet («Agregar») encima de lo que esté en pantalla.
+final class PassPresenter: NSObject, PKAddPassesViewControllerDelegate {
+    static let shared = PassPresenter()
+    private var onFinish: (() -> Void)?
+
+    func present(_ pass: PKPass, onFinish: @escaping () -> Void) {
+        guard let controller = PKAddPassesViewController(pass: pass), let top = Self.topController() else { return }
+        self.onFinish = onFinish
+        controller.delegate = self
+        top.present(controller, animated: true)
+    }
+
+    func addPassesViewControllerDidFinish(_ controller: PKAddPassesViewController) {
+        controller.dismiss(animated: true)
+        onFinish?()
+        onFinish = nil
+    }
+
+    private static func topController() -> UIViewController? {
+        let window = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap(\.windows)
+            .first { $0.isKeyWindow }
+        var top = window?.rootViewController
+        while let presented = top?.presentedViewController { top = presented }
+        return top
     }
 }

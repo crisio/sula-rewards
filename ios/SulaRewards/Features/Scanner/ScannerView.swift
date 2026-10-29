@@ -8,6 +8,8 @@ import VisionKit
 /// /tarjeta/<id>. Si la cámara no está disponible, se puede escribir el código.
 struct ScannerView: View {
     let onFound: (String) -> Void
+    /// Para el cliente: el QR del cartel del mostrador abre la página del negocio (en caja no aplica).
+    var onBusiness: ((String) -> Void)?
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
@@ -52,7 +54,7 @@ struct ScannerView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .allowsHitTesting(false)
                 .accessibilityHidden(true)
-            Text(message ?? "Apunta al QR de la tarjeta del cliente: en su Wallet o en su teléfono.")
+            Text(message ?? (onBusiness == nil ? "Apunta al QR de la tarjeta del cliente: en su Wallet o en su teléfono." : "Apunta al QR de tu tarjeta o al del cartel del negocio."))
                 .font(.headline)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.white)
@@ -127,9 +129,16 @@ struct ScannerView: View {
         switch CardCode.read(payload) {
         case .card(let id):
             finish(id)
-        case .joinPoster:
-            message = "Ese QR es para que tus clientes se unan. Escanea el de su tarjeta."
-            Haptics.error()
+        case .joinPoster(let slug):
+            if let onBusiness {
+                found = true
+                Haptics.success()
+                onBusiness(slug)
+                dismiss()
+            } else {
+                message = "Ese QR es para que tus clientes se unan. Escanea el de su tarjeta."
+                Haptics.error()
+            }
         case .unknown:
             message = "Ese QR no es de una tarjeta de Sula Rewards."
             Haptics.error()

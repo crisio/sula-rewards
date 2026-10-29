@@ -6,6 +6,8 @@ struct User: Codable, Equatable {
     let id: String
     let email: String
     let fullName: String?
+    /// Su celular como cliente (+504XXXXXXXX): con él se une a programas desde la app.
+    let phone: String?
 }
 
 struct Business: Codable, Identifiable, Hashable {
@@ -16,6 +18,10 @@ struct Business: Codable, Identifiable, Hashable {
     let city: String
     /// Cuántos programas tiene (solo en GET /businesses).
     var programs: Int?
+    /// El logo que subió el negocio (URL con versión), o nil.
+    var logoUrl: String?
+
+    var logoURL: URL? { logoUrl.flatMap(URL.init(string:)) }
 }
 
 enum ProgramType: String, Codable, CaseIterable, Identifiable {
@@ -143,8 +149,8 @@ struct Headline: Decodable, Hashable {
     let value: String
 }
 
-/// El programa como viaja dentro de la tarjeta.
-struct CardProgram: Decodable, ProgramRules {
+/// El programa como viaja dentro de la tarjeta (y en la página pública del negocio).
+struct CardProgram: Decodable, Identifiable, ProgramRules {
     let id: String
     let type: ProgramType
     let name: String
@@ -161,6 +167,9 @@ struct CardBusiness: Decodable {
     let slug: String
     let city: String
     let category: String?
+    let logoUrl: String?
+
+    var logoURL: URL? { logoUrl.flatMap(URL.init(string:)) }
 }
 
 enum MovementKind: String, Decodable {
@@ -219,4 +228,122 @@ struct CardRow: Decodable, Identifiable {
 /// POST /programs/:id/cards
 struct CreatedCard: Decodable {
     let id: String
+}
+
+extension Movement {
+    /// «+1 sello», «Compra de L 250.00 · +25 puntos»…
+    var summary: String {
+        switch kind {
+        case .alta:
+            return cents > 0 ? "Tarjeta creada con \(Fmt.lempiras(cents))" : "Tarjeta creada"
+        case .sello:
+            let prize = rewards > 0 ? " · ¡\(rewards == 1 ? "premio" : "\(rewards) premios")!" : ""
+            return "+\(stamps) \(stamps == 1 ? "sello" : "sellos")\(prize)"
+        case .compra:
+            let earned = points > 0 ? "+\(Fmt.number(points)) puntos" : "+\(Fmt.lempiras(cents))"
+            return "Compra de \(Fmt.lempiras(purchaseCents ?? 0)) · \(earned)"
+        case .canje:
+            return points != 0 ? "Canjeó premio (−\(Fmt.number(-points)) puntos)" : "Canjeó premio"
+        case .uso:
+            return "Usó \(Fmt.lempiras(-cents))"
+        case .recarga:
+            return "Recarga de \(Fmt.lempiras(cents))"
+        }
+    }
+}
+
+// MARK: - El cliente
+
+/// Si la tarjeta se puede guardar en Apple Wallet o en el Wallet de Android (según lo que tenga configurado la API).
+struct WalletAvailability: Decodable {
+    let apple: Bool
+    let google: Bool
+}
+
+/// Una tarjeta en la cuenta del cliente (GET /wallet, /wallet/cards/:id). Sin celular ni correo.
+struct CustomerCard: Decodable, Identifiable {
+    let id: String
+    let code: String
+    let customerName: String
+    let stamps: Int
+    let rewards: Int
+    let points: Int
+    let balanceCents: Int
+    let headline: Headline
+    let status: String
+    let program: CardProgram
+    let business: CardBusiness
+    let wallet: WalletAvailability
+    var movements: [Movement]?
+}
+
+/// Promoción de un negocio, como la ve el cliente.
+struct BusinessPromotion: Decodable, Identifiable {
+    let id: String
+    let title: String
+    let body: String?
+    let endsOn: String?
+    let createdAt: String
+}
+
+/// Un negocio en «Explorar» (GET /public/businesses y dentro de cada promoción).
+struct DirectoryBusiness: Decodable, Identifiable, Hashable {
+    let name: String
+    let slug: String
+    let category: String?
+    let city: String
+    let logoUrl: String?
+    let programs: Int?
+
+    var id: String { slug }
+    var logoURL: URL? { logoUrl.flatMap(URL.init(string:)) }
+}
+
+/// GET /public/promotions
+struct FeedPromotion: Decodable, Identifiable {
+    let id: String
+    let title: String
+    let body: String?
+    let endsOn: String?
+    let createdAt: String
+    let business: DirectoryBusiness
+}
+
+/// GET /public/b/:slug: el negocio con sus programas abiertos y sus promociones vigentes.
+struct PublicBusiness: Decodable {
+    let name: String
+    let slug: String
+    let city: String
+    let category: String?
+    let logoUrl: String?
+    let programs: [CardProgram]
+    let promotions: [BusinessPromotion]
+
+    var logoURL: URL? { logoUrl.flatMap(URL.init(string:)) }
+}
+
+/// Una promoción vista por su dueño (GET /businesses/:id/promotions).
+struct Promotion: Decodable, Identifiable {
+    let id: String
+    let businessId: String
+    let title: String
+    let body: String?
+    let endsOn: String?
+    var active: Int
+    let createdAt: String
+
+    var isActive: Bool { active != 0 }
+    var isExpired: Bool { endsOn.map { $0 < Fmt.today() } ?? false }
+}
+
+/// Qué formas de entrar están listas (GET /auth/config).
+struct AuthConfig: Decodable {
+    let apple: Bool
+    let googleIosClientId: String?
+}
+
+/// POST /auth/verify, /auth/apple, /auth/google
+struct SignedIn: Decodable {
+    let token: String
+    let user: User
 }

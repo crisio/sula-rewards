@@ -110,6 +110,7 @@ export default function NewProgram() {
           stampsGoal={stampsGoal}
           customerName="Gabriela Mejía"
           reward={type === 'sellos' || type === 'puntos' ? reward || 'Tu premio' : null}
+          logoUrl={business?.logo_url}
         />
 
         <div className="panel stack">

@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { LogoMark } from '../components/Logo'
 import WalletCard from '../components/WalletCard'
 import { api } from '../lib/api'
-import { lempiras } from '../lib/format'
+import { formatDay, lempiras } from '../lib/format'
 import { useApi } from '../lib/useApi'
 import type { CardView, Headline, PublicBusiness } from '../lib/types'
 
@@ -67,7 +67,7 @@ export default function Join() {
       {business && (
         <div className="stack">
           <div className="center stack" style={{ gap: 4, justifyItems: 'center' }}>
-            <LogoMark size={40} />
+            {business.logo_url ? <img className="biz-logo" src={business.logo_url} alt="" style={{ marginBottom: 4 }} /> : <LogoMark size={40} />}
             <h1 style={{ fontSize: 30 }}>{business.name}</h1>
             <span className="muted">{[business.category, business.city].filter(Boolean).join(' · ')}</span>
           </div>
@@ -94,6 +94,7 @@ export default function Join() {
                 stampsGoal={program.stamps_goal}
                 customerName={name.trim() || 'Tu nombre'}
                 reward={program.reward}
+                logoUrl={business.logo_url}
               />
               <p className="center" style={{ margin: 0, fontWeight: 600 }}>
                 {pitch(program)}
@@ -120,6 +121,21 @@ export default function Join() {
                 </p>
               </form>
             </>
+          )}
+
+          {business.promotions && business.promotions.length > 0 && (
+            <div className="panel stack" style={{ gap: 12 }}>
+              <h2>Promociones</h2>
+              <ul className="list">
+                {business.promotions.map((promo) => (
+                  <li key={promo.id} className="list-item" style={{ display: 'block', overflowWrap: 'anywhere' }}>
+                    <strong>{promo.title}</strong>
+                    {promo.body && <span style={{ display: 'block' }}>{promo.body}</span>}
+                    {promo.ends_on && <span className="small muted">Hasta el {formatDay(promo.ends_on)}</span>}
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
         </div>
       )}

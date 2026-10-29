@@ -1,38 +1,25 @@
 import SwiftUI
 
-/// Entrar → crear el negocio (la primera vez) → la caja.
+/// Entrar → la app: tarjetas y Explorar para todos; Mi negocio para quien tiene (o registra) un negocio.
 struct RootView: View {
     @Environment(Session.self) private var session
     @Environment(BusinessStore.self) private var store
+    @Environment(WalletStore.self) private var wallet
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         Group {
             if session.user == nil {
                 LoginView()
-            } else if let businesses = store.businesses {
-                if businesses.isEmpty { CreateBusinessView(first: true) } else { MainTabs() }
-            } else if let error = store.error {
-                ContentUnavailableView {
-                    Label("No pudimos abrir tu negocio", systemImage: "wifi.exclamationmark")
-                } description: {
-                    Text(error)
-                } actions: {
-                    Button("Intentar de nuevo") { Task { await store.refresh() } }
-                        .buttonStyle(PrimaryButtonStyle())
-                        .frame(maxWidth: 260)
-                    Button("Salir") { Task { await session.signOut() } }
-                }
-                .screenBackground()
             } else {
-                ProgressView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .screenBackground()
+                MainTabs()
             }
         }
         .task(id: session.user?.id) {
             guard session.user != nil else { return }
-            await store.refresh()
+            async let businesses: Void = store.refresh()
+            async let cards: Void = wallet.refresh()
+            _ = await (businesses, cards)
             await session.refresh()
         }
         .onChange(of: scenePhase) {
@@ -42,20 +29,32 @@ struct RootView: View {
     }
 }
 
+enum MainTab: String {
+    case wallet, explore, business, profile
+}
+
 struct MainTabs: View {
+    @AppStorage("sula.tab") private var tab = MainTab.wallet
+
     var body: some View {
-        TabView {
-            Tab("Caja", systemImage: "qrcode.viewfinder") {
-                CashierTab()
+        TabView(selection: $tab) {
+            Tab("Tarjetas", systemImage: "wallet.pass", value: MainTab.wallet) {
+                WalletTab(explore: { tab = .explore })
             }
-            Tab("Perfil", systemImage: "person.crop.circle") {
+            Tab("Explorar", systemImage: "sparkle.magnifyingglass", value: MainTab.explore) {
+                ExploreTab()
+            }
+            Tab("Mi negocio", systemImage: "storefront", value: MainTab.business) {
+                BusinessTab()
+            }
+            Tab("Perfil", systemImage: "person.crop.circle", value: MainTab.profile) {
                 NavigationStack { ProfileView() }
             }
         }
     }
 }
 
-/// La pestaña de caja con su pila: inicio → programa → tarjeta.
+/// La caja con su pila: inicio → programa → tarjeta.
 struct CashierTab: View {
     @Environment(BusinessStore.self) private var store
     @State private var router = Router()

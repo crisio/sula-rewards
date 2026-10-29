@@ -208,3 +208,38 @@ struct PrivacyLink: View {
         Link(title, destination: Config.privacyURL).font(.footnote.weight(.semibold))
     }
 }
+
+/// El logo del negocio en un cuadro blanco redondeado; sin logo, la inicial de su nombre.
+struct BusinessLogo: View {
+    let url: URL?
+    var name = ""
+    var size: CGFloat = 44
+
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: size * 0.28)
+        ZStack {
+            shape.fill(Color.white)
+            if let url {
+                AsyncImage(url: url) { phase in
+                    if let image = phase.image {
+                        image.resizable().scaledToFill()
+                    } else {
+                        initial
+                    }
+                }
+            } else {
+                initial
+            }
+        }
+        .frame(width: size, height: size)
+        .clipShape(shape)
+        .overlay(shape.strokeBorder(Theme.line))
+        .accessibilityHidden(true)
+    }
+
+    private var initial: some View {
+        Text(String(name.prefix(1)).uppercased())
+            .font(.system(size: size * 0.42, weight: .heavy, design: .rounded))
+            .foregroundStyle(Color(hex: 0x4F3FE0))
+    }
+}

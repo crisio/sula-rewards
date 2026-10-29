@@ -17,6 +17,8 @@ export interface Env {
   /** Entrar con Google: los client ID de OAuth (el de iOS lo lee la app en /auth/config). */
   GOOGLE_IOS_CLIENT_ID?: string
   GOOGLE_WEB_CLIENT_ID?: string
+  /** A dónde llegan los reportes de promociones (opcional). */
+  REPORTS_EMAIL?: string
   /** Cuenta para la revisión de la App Store: ese correo entra con REVIEW_CODE (6 dígitos) y no se le manda correo. */
   REVIEW_EMAIL?: string
   REVIEW_CODE?: string

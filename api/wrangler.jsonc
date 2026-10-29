@@ -23,7 +23,9 @@
     "APPLE_SIGNIN_KEY_ID": "",
     // Entrar con Google (ver docs/login.md): los client ID de OAuth. Sin ellos, el botón de Google no aparece.
     "GOOGLE_IOS_CLIENT_ID": "",
-    "GOOGLE_WEB_CLIENT_ID": ""
+    "GOOGLE_WEB_CLIENT_ID": "",
+    // A dónde llegan los reportes de promociones que hacen los clientes desde la app.
+    "REPORTS_EMAIL": "hola@cristopherpineda.com"
   },
   // Al publicar por primera vez, Cloudflare crea la base de datos automáticamente.
   "d1_databases": [{ "binding": "DB", "database_name": "sula-rewards", "migrations_dir": "migrations" }]

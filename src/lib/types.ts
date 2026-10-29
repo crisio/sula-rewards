@@ -13,6 +13,8 @@ export interface Business {
   category: string | null
   city: string
   programs?: number
+  /** URL absoluta del logo (con ?v=), o null si no tiene. */
+  logo_url?: string | null
 }
 
 export interface Program {
@@ -54,7 +56,7 @@ export interface CardView {
   headline: Headline
   status: string
   program: Pick<Program, 'id' | 'type' | 'name' | 'color' | 'reward' | 'stamps_goal' | 'points_per_100' | 'reward_points' | 'cashback_bp'>
-  business: Pick<Business, 'name' | 'slug' | 'city' | 'category'>
+  business: Pick<Business, 'name' | 'slug' | 'city' | 'category' | 'logo_url'>
   wallet: { apple: boolean; google: boolean }
 }
 
@@ -89,10 +91,25 @@ export interface CardRow {
   updated_at: number
 }
 
+/** Promoción del negocio; la ven todos los clientes en «Explorar» de la app. */
+export interface Promotion {
+  id: string
+  business_id: string
+  title: string
+  body: string | null
+  /** AAAA-MM-DD, o null si no vence. */
+  ends_on: string | null
+  active: 0 | 1
+  created_at: string
+}
+
 export interface PublicBusiness {
   name: string
   slug: string
   city: string
   category: string | null
+  logo_url?: string | null
   programs: CardView['program'][]
+  /** Solo las vigentes. */
+  promotions?: Pick<Promotion, 'id' | 'title' | 'body' | 'ends_on' | 'created_at'>[]
 }

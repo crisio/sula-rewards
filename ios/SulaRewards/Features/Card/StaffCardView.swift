@@ -37,6 +37,7 @@ struct StaffCardView: View {
                         color: card.program.color,
                         businessName: card.business.name,
                         headline: card.headline,
+                        logoURL: card.business.logoURL,
                         customerName: card.customerName,
                         reward: card.program.reward,
                         stamps: card.stamps,
@@ -246,7 +247,7 @@ struct StaffCardView: View {
                 SectionTitle("Movimientos")
                 ForEach(movements) { m in
                     HStack(alignment: .firstTextBaseline, spacing: 12) {
-                        Text(describe(m)).font(.subheadline).foregroundStyle(Theme.ink)
+                        Text(m.summary).font(.subheadline).foregroundStyle(Theme.ink)
                         Spacer(minLength: 8)
                         Text(Fmt.dateTime(m.createdAt)).font(.footnote).foregroundStyle(Theme.muted).fixedSize()
                     }
@@ -256,25 +257,6 @@ struct StaffCardView: View {
                 }
             }
             .card()
-        }
-    }
-
-    private func describe(_ m: Movement) -> String {
-        switch m.kind {
-        case .alta:
-            return m.cents > 0 ? "Tarjeta creada con \(Fmt.lempiras(m.cents))" : "Tarjeta creada"
-        case .sello:
-            let prize = m.rewards > 0 ? " · ¡\(m.rewards == 1 ? "premio" : "\(m.rewards) premios")!" : ""
-            return "+\(m.stamps) \(m.stamps == 1 ? "sello" : "sellos")\(prize)"
-        case .compra:
-            let earned = m.points > 0 ? "+\(Fmt.number(m.points)) puntos" : "+\(Fmt.lempiras(m.cents))"
-            return "Compra de \(Fmt.lempiras(m.purchaseCents ?? 0)) · \(earned)"
-        case .canje:
-            return m.points != 0 ? "Canjeó premio (−\(Fmt.number(-m.points)) puntos)" : "Canjeó premio"
-        case .uso:
-            return "Usó \(Fmt.lempiras(-m.cents))"
-        case .recarga:
-            return "Recarga de \(Fmt.lempiras(m.cents))"
         }
     }
 

@@ -152,6 +152,22 @@ describe('promociones', () => {
     expect((await call(`/promotions/${promo.data.id}`, { method: 'DELETE', token })).status).toBe(200)
   })
 
+  it('cualquiera con cuenta la puede reportar; con 3 reportes se pausa sola', async () => {
+    const { token, business } = await setupProgram('reportada@sps.hn', SELLOS)
+    const promo = (await call(`/businesses/${business.id}/promotions`, { method: 'POST', token, json: { title: 'Promo dudosa' } })).data
+    const report = (t: string) => call(`/promotions/${promo.id}/report`, { method: 'POST', token: t, json: { reason: 'Engañosa' } })
+    expect((await call(`/promotions/${promo.id}/report`, { method: 'POST', json: {} })).status).toBe(401)
+    const first = await login('reporta-1@correo.hn')
+    expect((await report(first)).status).toBe(200)
+    expect((await report(first)).status).toBe(200) // el mismo dos veces cuenta una
+    expect((await report(await login('reporta-2@correo.hn'))).status).toBe(200)
+    const titles = async () => (await call('/public/promotions')).data.map((p: { title: string }) => p.title)
+    expect(await titles()).toContain('Promo dudosa')
+    await report(await login('reporta-3@correo.hn'))
+    expect(await titles()).not.toContain('Promo dudosa')
+    expect((await call('/promotions/no-existe/report', { method: 'POST', token: first, json: {} })).status).toBe(404)
+  })
+
   it('Explorar lista los negocios con programas abiertos', async () => {
     const { business } = await setupProgram('directorio@sps.hn', SELLOS)
     const sinProgramas = await call('/businesses', { method: 'POST', token: await login('vacio@sps.hn'), json: { name: 'Sin programas' } })

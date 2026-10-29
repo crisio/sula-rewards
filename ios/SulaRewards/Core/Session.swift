@@ -33,10 +33,10 @@ final class Session {
         }
     }
 
-    func signIn(token: String, user: User) {
-        Keychain.save(token)
-        api.token = token
-        setUser(user)
+    func signIn(_ result: SignedIn) {
+        Keychain.save(result.token)
+        api.token = result.token
+        setUser(result.user)
     }
 
     /// Refresca el usuario en segundo plano (un 401 cierra la sesión).
@@ -45,12 +45,21 @@ final class Session {
         if let me: User = try? await api.request("GET", "/me") { setUser(me) }
     }
 
+    /// Cambia el nombre o el celular (PATCH /me).
+    @discardableResult
+    func update(_ fields: [String: Any]) async throws -> User {
+        let updated: User = try await api.request("PATCH", "/me", json: fields)
+        setUser(updated)
+        return updated
+    }
+
     func signOut() async {
         let _: OKResponse? = try? await api.request("POST", "/auth/logout")
         forgetLocal()
     }
 
-    /// Borra la cuenta en el servidor (negocios, programas, tarjetas de clientes y movimientos) y lo que quedó en el teléfono.
+    /// Borra la cuenta en el servidor (negocios, programas, tarjetas de sus clientes y movimientos; sus tarjetas como
+    /// cliente siguen en cada negocio) y lo que quedó en el teléfono.
     func deleteAccount() async throws {
         let _: OKResponse = try await api.request("DELETE", "/me", timeout: 60)
         forgetLocal()
@@ -59,6 +68,7 @@ final class Session {
     // En un teléfono compartido no deben quedar datos de otro negocio.
     private func forgetLocal() {
         BusinessStore.shared.clear()
+        WalletStore.shared.clear()
         URLCache.shared.removeAllCachedResponses()
         Keychain.delete()
         api.token = nil

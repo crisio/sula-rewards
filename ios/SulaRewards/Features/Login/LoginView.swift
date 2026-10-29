@@ -1,11 +1,16 @@
+import AuthenticationServices
 import SwiftUI
 
-/// Entrar con un código de 6 dígitos que llega por correo. Si es la primera vez, se crea la cuenta.
+/// Entrar con Apple, con Google o con un código de 6 dígitos por correo. Si es la primera vez, se crea la cuenta.
 struct LoginView: View {
     private enum Step { case email, code }
     private enum Field { case email, code }
 
     @Environment(Session.self) private var session
+    @Environment(\.webAuthenticationSession) private var webAuthenticationSession
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var config: AuthConfig?
+    @State private var usingEmail = false
     @State private var step = Step.email
     @State private var email = ""
     @State private var code = ""
@@ -18,17 +23,55 @@ struct LoginView: View {
         ScrollView {
             VStack(spacing: 24) {
                 VStack(spacing: 10) {
-                    LogoMark(size: 76).padding(.top, 56)
+                    LogoMark(size: 76).padding(.top, 48)
                     Text("Sula Rewards")
                         .font(.system(size: 36, weight: .heavy, design: .rounded))
                         .foregroundStyle(Theme.ink)
-                    Text("Escanea y suma en caja: sellos, puntos, cashback y gift cards para tus clientes.")
+                    Text("Tus tarjetas de lealtad de San Pedro Sula en un solo lugar. Y si tienes negocio, tu caja para sumar y canjear.")
                         .font(.body)
                         .foregroundStyle(Theme.muted)
                         .multilineTextAlignment(.center)
                 }
 
-                if step == .email { emailCard } else { codeCard }
+                VStack(spacing: 12) {
+                    if config?.apple ?? true {
+                        SignInWithAppleButton(.continue) { request in
+                            request.requestedScopes = [.fullName, .email]
+                        } onCompletion: { result in
+                            handleApple(result)
+                        }
+                        .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
+                        .frame(height: 50)
+                        .clipShape(.capsule)
+                        .disabled(busy)
+                    }
+                    if let clientID = config?.googleIosClientId {
+                        Button {
+                            Task { await run { try await Auth.google(clientID: clientID, session: webAuthenticationSession) } }
+                        } label: {
+                            Label("Continuar con Google", systemImage: "g.circle.fill")
+                        }
+                        .buttonStyle(SecondaryButtonStyle())
+                        .disabled(busy)
+                    }
+                    if !usingEmail {
+                        Button {
+                            withAnimation { usingEmail = true }
+                            focus = .email
+                        } label: {
+                            Label("Entrar con mi correo", systemImage: "envelope.fill")
+                        }
+                        .buttonStyle(SecondaryButtonStyle())
+                        .disabled(busy)
+                    }
+                    if busy, !usingEmail { ProgressView() }
+                    if let error, !usingEmail { Notice(text: error) }
+                }
+                .card()
+
+                if usingEmail {
+                    if step == .email { emailCard } else { codeCard }
+                }
 
                 VStack(spacing: 4) {
                     Text("¿Qué hacemos con tus datos?").font(.footnote).foregroundStyle(Theme.muted)
@@ -41,10 +84,14 @@ struct LoginView: View {
         .scrollDismissesKeyboard(.interactively)
         .screenBackground()
         .task {
+            config = await Auth.config()
             #if DEBUG
             // Solo en desarrollo: correo precargado para probar en el simulador (su teclado cambia la "@").
             // xcrun simctl spawn booted defaults write com.cristopherpineda.sularewards SULA_DEBUG_EMAIL revision@sula.test
-            if email.isEmpty, let debugEmail = UserDefaults.standard.string(forKey: "SULA_DEBUG_EMAIL") { email = debugEmail }
+            if email.isEmpty, let debugEmail = UserDefaults.standard.string(forKey: "SULA_DEBUG_EMAIL") {
+                email = debugEmail
+                usingEmail = true
+            }
             #endif
         }
         .task(id: wait) {
@@ -67,7 +114,7 @@ struct LoginView: View {
                 .focused($focus, equals: .email)
                 .onSubmit { Task { await requestCode() } }
                 .inputStyle()
-            FinePrint("Te enviaremos un código para entrar al panel de tu negocio. Si es tu primera vez, se crea tu cuenta.")
+            FinePrint("Te enviaremos un código para entrar. Si es tu primera vez, se crea tu cuenta.")
             if let error { Notice(text: error) }
             Button {
                 Task { await requestCode() }
@@ -128,6 +175,31 @@ struct LoginView: View {
         .card()
     }
 
+    private func handleApple(_ result: Result<ASAuthorization, Error>) {
+        switch result {
+        case .success(let authorization):
+            guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential else { return }
+            Task { await run { try await Auth.apple(credential) } }
+        case .failure(let error):
+            if !Auth.isCancellation(error) { self.error = "No se pudo entrar con Apple. Intenta de nuevo." }
+        }
+    }
+
+    /// Entra con Apple o Google: muestra la ruedita y, si algo falla, el mensaje.
+    private func run(_ signIn: () async throws -> SignedIn) async {
+        busy = true
+        error = nil
+        do {
+            session.signIn(try await signIn())
+        } catch {
+            if !Auth.isCancellation(error) {
+                self.error = error.localizedDescription
+                Haptics.error()
+            }
+        }
+        busy = false
+    }
+
     private func requestCode() async {
         let trimmed = email.trimmingCharacters(in: .whitespaces)
         guard !busy, trimmed.contains("@") else { return }
@@ -145,20 +217,15 @@ struct LoginView: View {
         busy = false
     }
 
-    private struct Verified: Decodable {
-        let token: String
-        let user: User
-    }
-
     private func verify() async {
         guard !busy, code.count == 6 else { return }
         busy = true
         error = nil
         do {
-            let result: Verified = try await APIClient.shared.request(
+            let result: SignedIn = try await APIClient.shared.request(
                 "POST", "/auth/verify", json: ["email": email.trimmingCharacters(in: .whitespaces), "code": code]
             )
-            session.signIn(token: result.token, user: result.user)
+            session.signIn(result)
         } catch {
             self.error = error.localizedDescription
             Haptics.error()

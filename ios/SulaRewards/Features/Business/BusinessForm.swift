@@ -34,13 +34,10 @@ struct BusinessForm: View {
     }
 }
 
-/// Primera vez (o un negocio más): cómo se llama y su giro.
+/// Registrar un negocio (el primero o uno más): cómo se llama y su giro. Va en una hoja.
 struct CreateBusinessView: View {
-    /// Primera vez: pantalla completa con la opción de usar otro correo. Si no, va en una hoja.
-    var first = false
     var onCreated: (() -> Void)?
 
-    @Environment(Session.self) private var session
     @Environment(BusinessStore.self) private var store
     @State private var name = ""
     @State private var category = ""
@@ -50,19 +47,6 @@ struct CreateBusinessView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                if first {
-                    HStack {
-                        Spacer()
-                        LogoMark(size: 64)
-                        Spacer()
-                    }
-                    .padding(.top, 40)
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(session.user?.email ?? "").font(.subheadline).foregroundStyle(Theme.muted)
-                        Text("¡Bienvenido!").font(.system(size: 34, weight: .heavy, design: .rounded)).foregroundStyle(Theme.ink)
-                    }
-                }
-
                 VStack(alignment: .leading, spacing: 16) {
                     VStack(alignment: .leading, spacing: 4) {
                         SectionTitle("¿Cómo se llama tu negocio?")
@@ -79,15 +63,8 @@ struct CreateBusinessView: View {
                     .disabled(busy || name.trimmingCharacters(in: .whitespaces).count < 2)
                 }
                 .card()
-
-                if first {
-                    Button("Usar otro correo") { Task { await session.signOut() } }
-                        .font(.subheadline.weight(.semibold))
-                        .frame(maxWidth: .infinity)
-                }
             }
-            .padding(.horizontal, Theme.gutter)
-            .padding(.bottom, 32)
+            .padding(Theme.gutter)
         }
         .scrollDismissesKeyboard(.interactively)
         .screenBackground()

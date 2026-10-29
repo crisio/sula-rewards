@@ -98,5 +98,38 @@ enum Fmt {
         return dateTimeFormatter.string(from: date)
     }
 
+    // Las fechas de las promociones (AAAA-MM-DD) son días de calendario: se leen y se muestran en la misma zona.
+    private static let isoDay: DateFormatter = {
+        let f = DateFormatter()
+        f.calendar = Calendar(identifier: .gregorian)
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.timeZone = timeZone
+        f.dateFormat = "yyyy-MM-dd"
+        return f
+    }()
+
+    private static let dayFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = locale
+        f.timeZone = timeZone
+        f.setLocalizedDateFormatFromTemplate("d MMMM")
+        return f
+    }()
+
+    /// Hoy en Honduras: «2026-10-29».
+    static func today() -> String { isoDay.string(from: Date()) }
+
+    /// «2026-12-31» → «Hasta el 31 de diciembre».
+    static func until(_ day: String) -> String {
+        guard let date = isoDay.date(from: day) else { return day }
+        return "Hasta el \(dayFormatter.string(from: date))"
+    }
+
+    /// Un día elegido en el calendario del teléfono → «2026-12-31».
+    static func isoDay(from date: Date) -> String {
+        let parts = Calendar.current.dateComponents([.year, .month, .day], from: date)
+        return String(format: "%04d-%02d-%02d", parts.year ?? 0, parts.month ?? 0, parts.day ?? 0)
+    }
+
     nonisolated private static func isDigit(_ c: Character) -> Bool { c.isASCII && c.isNumber }
 }

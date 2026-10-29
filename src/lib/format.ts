@@ -42,5 +42,16 @@ const dateTime = new Intl.DateTimeFormat('es-HN', {
 
 export const formatDateTime = (iso: string) => dateTime.format(new Date(iso))
 
+/** Hoy en Honduras (UTC−6, sin horario de verano): AAAA-MM-DD, como lo cuenta la API. */
+export const todayInHonduras = () => new Date(Date.now() - 6 * 60 * 60_000).toISOString().slice(0, 10)
+
+// Las fechas sin hora (AAAA-MM-DD) se leen y se escriben en UTC para que no se corran un día.
+const day = new Intl.DateTimeFormat('es-HN', { timeZone: 'UTC', day: 'numeric', month: 'short' })
+const dayYear = new Intl.DateTimeFormat('es-HN', { timeZone: 'UTC', day: 'numeric', month: 'short', year: 'numeric' })
+
+/** 2026-12-31 → «31 dic» (con el año si no es este). */
+export const formatDay = (date: string) =>
+  (date.slice(0, 4) === todayInHonduras().slice(0, 4) ? day : dayYear).format(new Date(`${date}T00:00:00Z`))
+
 /** URL absoluta de una ruta de la app (respeta /sula-rewards/ en GitHub Pages). */
 export const appUrl = (path: string) => new URL(import.meta.env.BASE_URL.replace(/\/?$/, '/') + path.replace(/^\//, ''), location.origin).toString()

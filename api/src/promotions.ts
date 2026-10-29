@@ -3,11 +3,15 @@ import type { Context } from 'hono'
 import type { AppEnv, Business } from './env'
 import { fail } from './errors'
 import { text } from './rules'
+import { sendMail } from './email'
 
 // Promociones: cada negocio publica las suyas («2×1 en baleadas los martes») y todos los clientes las ven en
 // «Explorar» de la app mientras estén activas y no hayan vencido.
 
 export const MAX_ACTIVE_PROMOTIONS = 5
+
+/** Con tantos reportes de personas distintas, la promoción se pausa sola. */
+export const REPORTS_TO_PAUSE = 3
 
 export interface Promotion {
   id: string
@@ -98,5 +102,29 @@ promotionRoutes.patch('/:id', async (c) => {
 promotionRoutes.delete('/:id', async (c) => {
   const promotion = await ownedPromotion(c, c.req.param('id'))
   await c.env.DB.prepare('DELETE FROM promotions WHERE id = ?').bind(promotion.id).run()
+  return c.json({ ok: true })
+})
+
+// Cualquier persona con cuenta puede reportar una promoción (lo pide la App Store para lo que publican otros).
+promotionRoutes.post('/:id/report', async (c) => {
+  const promotion = await c.env.DB.prepare('SELECT * FROM promotions WHERE id = ?').bind(c.req.param('id')).first<Promotion>()
+  if (!promotion) fail(404, 'No encontramos esa promoción')
+  const body = await c.req.json<{ reason?: unknown }>().catch(() => ({}) as { reason?: unknown })
+  const reason = typeof body.reason === 'string' ? body.reason.trim().slice(0, 280) || null : null
+  const { meta } = await c.env.DB.prepare('INSERT INTO promotion_reports (promotion_id, user_id, reason) VALUES (?, ?, ?) ON CONFLICT DO NOTHING')
+    .bind(promotion.id, c.var.user.id, reason)
+    .run()
+  const reports = (await c.env.DB.prepare('SELECT COUNT(*) AS n FROM promotion_reports WHERE promotion_id = ?').bind(promotion.id).first<number>('n')) ?? 0
+  if (reports >= REPORTS_TO_PAUSE && promotion.active) {
+    await c.env.DB.prepare('UPDATE promotions SET active = 0 WHERE id = ?').bind(promotion.id).run()
+  }
+  if (meta.changes && c.env.REPORTS_EMAIL) {
+    const summary = `Promoción «${promotion.title}» (${promotion.id}), negocio ${promotion.business_id}. Reportes: ${reports}.${reason ? ` Motivo: ${reason}` : ''}`
+    c.executionCtx.waitUntil(
+      sendMail(c.env, { to: c.env.REPORTS_EMAIL, subject: `Reporte de promoción: ${promotion.title}`, text: summary, html: `<p>${summary.replace(/</g, '&lt;')}</p>` }).catch(
+        (err) => console.error('reporte', err),
+      ),
+    )
+  }
   return c.json({ ok: true })
 })

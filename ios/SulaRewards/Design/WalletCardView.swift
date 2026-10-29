@@ -6,6 +6,8 @@ struct WalletCardView: View {
     let color: String
     let businessName: String
     let headline: Headline
+    /// El logo del negocio; sin logo, el ícono del tipo de programa.
+    var logoURL: URL?
     var customerName: String?
     var reward: String?
     /// Solo sellos: cuántos lleva y la meta.
@@ -18,11 +20,7 @@ struct WalletCardView: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .top, spacing: 12) {
                 HStack(spacing: 10) {
-                    Image(systemName: type.symbol)
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(cardColor)
-                        .frame(width: 30, height: 30)
-                        .background(.white.opacity(0.92), in: .rect(cornerRadius: 9))
+                    badge
                     Text(businessName)
                         .font(.headline)
                         .lineLimit(1)
@@ -68,6 +66,24 @@ struct WalletCardView: View {
         .shadow(color: cardColor.opacity(0.35), radius: 14, y: 8)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(businessName): \(headline.label) \(headline.value)")
+    }
+
+    @ViewBuilder private var badge: some View {
+        let icon = Image(systemName: type.symbol)
+            .font(.system(size: 14, weight: .bold))
+            .foregroundStyle(cardColor)
+        Group {
+            if let logoURL {
+                AsyncImage(url: logoURL) { phase in
+                    if let image = phase.image { image.resizable().scaledToFill() } else { icon }
+                }
+            } else {
+                icon
+            }
+        }
+        .frame(width: 30, height: 30)
+        .background(.white.opacity(0.92))
+        .clipShape(.rect(cornerRadius: 9))
     }
 
     private func stampGrid(goal: Int) -> some View {

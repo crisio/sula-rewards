@@ -72,6 +72,7 @@ export default function PublicCard() {
           stampsGoal={p.stamps_goal}
           customerName={card.customer_name}
           reward={p.reward}
+          logoUrl={card.business.logo_url}
         />
         <p className="center" style={{ margin: 0, fontWeight: 600 }}>
           {card.status}

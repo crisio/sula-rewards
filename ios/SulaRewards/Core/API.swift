@@ -31,6 +31,8 @@ final class APIClient {
         _ path: String,
         query: [String: String] = [:],
         json: [String: Any]? = nil,
+        body: Data? = nil,
+        contentType: String = "application/octet-stream",
         timeout: TimeInterval = 20
     ) async throws -> T {
         var components = URLComponents(url: Config.apiURL.appending(path: path), resolvingAgainstBaseURL: false)!
@@ -42,6 +44,9 @@ final class APIClient {
         if let json {
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             request.httpBody = try JSONSerialization.data(withJSONObject: json)
+        } else if let body {
+            request.setValue(contentType, forHTTPHeaderField: "Content-Type")
+            request.httpBody = body
         }
 
         let data: Data

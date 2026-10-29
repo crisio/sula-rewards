@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react'
+import { useState, type CSSProperties } from 'react'
 import type { Headline, ProgramType } from '../lib/types'
 import { CheckIcon, TypeIcon } from './Icons'
 
@@ -14,11 +14,14 @@ export interface WalletCardProps {
   stampsGoal?: number | null
   /** En la pila del Wallet solo se ve la parte de arriba. */
   compact?: boolean
+  /** El logo del negocio; sin logo (o si no carga) va el ícono del programa. */
+  logoUrl?: string | null
 }
 
 /** La tarjeta como se ve en Apple Wallet o Google Wallet. */
 export default function WalletCard(props: WalletCardProps) {
-  const { type, color, businessName, headline, customerName, reward, stamps = 0, stampsGoal, compact } = props
+  const { type, color, businessName, headline, customerName, reward, stamps = 0, stampsGoal, compact, logoUrl } = props
+  const [brokenLogo, setBrokenLogo] = useState<string | null>(null)
   const goal = stampsGoal ?? 0
   const perRow = goal > 10 ? Math.ceil(goal / 2) : goal
   return (
@@ -26,7 +29,7 @@ export default function WalletCard(props: WalletCardProps) {
       <div className="wcard-head">
         <div className="wcard-brand">
           <span className="wcard-icon">
-            <TypeIcon type={type} />
+            {logoUrl && logoUrl !== brokenLogo ? <img src={logoUrl} alt="" onError={() => setBrokenLogo(logoUrl)} /> : <TypeIcon type={type} />}
           </span>
           <span>{businessName}</span>
         </div>
