@@ -6,8 +6,8 @@ Las dos son opcionales e independientes: la API muestra el botón de cada una so
 
 Se necesita una cuenta del **Apple Developer Program** (US$99 al año).
 
-1. **Pass Type ID:** en https://developer.apple.com/account/resources/identifiers/list/passTypeId crea uno, por ejemplo
-   `pass.hn.sularewards.tarjeta`.
+1. **Pass Type ID:** en https://developer.apple.com/account/resources/identifiers/list/passTypeId crea
+   `pass.com.cristopherpineda.sularewards` (el que está en `api/wrangler.jsonc`).
 2. **Llave y solicitud de certificado** (en tu computadora):
 
    ```bash

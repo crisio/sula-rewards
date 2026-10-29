@@ -13,8 +13,8 @@
     "EMAIL_MODE": "resend",
     "EMAIL_FROM": "Sula Rewards <hola@cristopherpineda.com>",
     // Apple Wallet (ver docs/wallet.md). Sin estos datos y sus secretos, el botón de Apple Wallet no aparece.
-    "APPLE_PASS_TYPE_ID": "",
-    "APPLE_TEAM_ID": "",
+    "APPLE_PASS_TYPE_ID": "pass.com.cristopherpineda.sularewards",
+    "APPLE_TEAM_ID": "3BZ685RYJ3",
     // Google Wallet (ver docs/wallet.md). Sin el emisor y sus secretos, el botón de Google Wallet no aparece.
     "GOOGLE_WALLET_ISSUER_ID": ""
   },
