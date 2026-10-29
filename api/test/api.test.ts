@@ -23,6 +23,25 @@ describe('login con código por correo', () => {
     expect((await call('/auth/verify', { method: 'POST', json: { email, code } })).status).toBe(400)
   })
 
+  it('la cuenta de revisión de la App Store entra con su código fijo y no se le manda correo', async () => {
+    const review = { REVIEW_EMAIL: 'Revision@Sula.test', REVIEW_CODE: '482915' }
+    const { devOutbox } = await import('../src/email')
+    const sent = devOutbox.length
+    expect((await call('/auth/code', { method: 'POST', json: { email: 'revision@sula.test' }, env: review })).status).toBe(200)
+    expect(devOutbox.length).toBe(sent)
+
+    const ok = await call('/auth/verify', { method: 'POST', json: { email: 'revision@sula.test', code: '482915' }, env: review })
+    expect(ok.status).toBe(200)
+    expect(ok.data.user.email).toBe('revision@sula.test')
+
+    // Los demás correos siguen recibiendo un código al azar, y sin REVIEW_CODE válido no hay código fijo
+    expect((await call('/auth/code', { method: 'POST', json: { email: 'otro@sula.test' }, env: review })).status).toBe(200)
+    expect(devOutbox.length).toBe(sent + 1)
+    await env.DB.prepare('DELETE FROM auth_codes').run()
+    await call('/auth/code', { method: 'POST', json: { email: 'revision@sula.test' }, env: { ...review, REVIEW_CODE: '123' } })
+    expect(devOutbox.length).toBe(sent + 2)
+  })
+
   it('el panel exige sesión', async () => {
     expect((await call('/businesses')).status).toBe(401)
     expect((await call('/cards/ABCD/actions', { method: 'POST', json: {} })).status).toBe(401)
@@ -208,5 +227,37 @@ describe('buscar clientes', () => {
     expect(await names(phone.slice(-4))).toEqual(['Marvin Castillo'])
     expect(await names(id.toLowerCase())).toEqual(['Marvin Castillo'])
     expect(await names('')).toEqual(['Gabriela Mejía', 'Marvin Castillo'])
+  })
+})
+
+describe('borrar la cuenta', () => {
+  it('borra la cuenta con sus negocios, programas, tarjetas y movimientos, y no toca lo de otros', async () => {
+    const { token, business, program } = await setupProgram('borrar@sps.hn', SELLOS)
+    const cardId = await newCard(token, program.id)
+    await act(token, cardId, { action: 'sello' })
+    const other = await setupProgram('se-queda@sps.hn', SELLOS)
+    const otherCard = await newCard(other.token, other.program.id)
+
+    expect((await call('/me', { method: 'DELETE' })).status).toBe(401)
+    const res = await call('/me', { method: 'DELETE', token })
+    expect(res.status).toBe(200)
+    expect(res.data).toEqual({ ok: true })
+
+    expect((await call('/me', { token })).status).toBe(401)
+    const count = async (sql: string, id: string) => (await env.DB.prepare(sql).bind(id).first<number>('n')) ?? 0
+    expect(await count('SELECT COUNT(*) AS n FROM users WHERE email = ?', 'borrar@sps.hn')).toBe(0)
+    expect(await count('SELECT COUNT(*) AS n FROM businesses WHERE id = ?', business.id)).toBe(0)
+    expect(await count('SELECT COUNT(*) AS n FROM programs WHERE id = ?', program.id)).toBe(0)
+    expect(await count('SELECT COUNT(*) AS n FROM cards WHERE id = ?', cardId)).toBe(0)
+    expect(await count('SELECT COUNT(*) AS n FROM movements WHERE card_id = ?', cardId)).toBe(0)
+    expect((await call(`/public/cards/${cardId}`)).status).toBe(404)
+    expect((await call(`/public/b/${business.slug}`)).status).toBe(404)
+
+    // El otro negocio sigue igual
+    expect((await call(`/cards/${otherCard}`, { token: other.token })).data.id).toBe(otherCard)
+
+    // Con el mismo correo se puede volver a entrar: es una cuenta nueva, sin negocios
+    const again = await login('borrar@sps.hn')
+    expect((await call('/businesses', { token: again })).data).toEqual([])
   })
 })

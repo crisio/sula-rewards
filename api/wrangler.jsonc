@@ -23,4 +23,5 @@
   // Secretos (no van aquí): AUTH_SECRET, RESEND_API_KEY (o GMAIL_USER y GMAIL_APP_PASSWORD si usas EMAIL_MODE "smtp")
   // Apple Wallet: APPLE_PASS_CERT, APPLE_PASS_KEY y APPLE_WWDR_CERT (PEM)
   // Google Wallet: GOOGLE_SA_EMAIL y GOOGLE_SA_KEY (la llave privada PEM de la cuenta de servicio)
+  // Opcionales, para la revisión de la App Store: REVIEW_EMAIL y REVIEW_CODE (ver docs/app-store.md)
 }

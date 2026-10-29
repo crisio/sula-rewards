@@ -1,3 +1,6 @@
 # Copia este archivo a .dev.vars para correr la API en local (npm run dev).
 AUTH_SECRET=cambia-esto-por-algo-largo-y-aleatorio-de-32+
 EMAIL_MODE=log
+# Opcional: cuenta para la revisión de la App Store (entra con este código fijo y no se le manda correo)
+REVIEW_EMAIL=
+REVIEW_CODE=

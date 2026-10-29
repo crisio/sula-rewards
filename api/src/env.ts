@@ -9,6 +9,9 @@ export interface Env {
   RESEND_API_KEY?: string
   GMAIL_USER?: string
   GMAIL_APP_PASSWORD?: string
+  /** Cuenta para la revisión de la App Store: ese correo entra con REVIEW_CODE (6 dígitos) y no se le manda correo. */
+  REVIEW_EMAIL?: string
+  REVIEW_CODE?: string
   /** Apple Wallet (ver docs/wallet.md): el Pass Type ID y el Team ID van en vars; el certificado y su llave, como secretos (PEM). */
   APPLE_PASS_TYPE_ID?: string
   APPLE_TEAM_ID?: string
