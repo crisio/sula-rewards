@@ -8,6 +8,9 @@ import { programRoutes } from './programs'
 import { cardRoutes } from './cards'
 import { publicRoutes } from './public'
 import { appleRoutes } from './apple'
+import { oauthRoutes } from './oauth'
+import { walletRoutes } from './wallet'
+import { promotionRoutes } from './promotions'
 
 const app = new Hono<AppEnv>()
 
@@ -15,7 +18,7 @@ app.use('*', async (c, next) => {
   const allowed = c.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
   return cors({
     origin: (origin) => (allowed.includes(origin) ? origin : null),
-    allowMethods: ['GET', 'POST', 'PATCH', 'DELETE'],
+    allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     allowHeaders: ['Authorization', 'Content-Type'],
     maxAge: 86400,
   })(c, next)
@@ -33,19 +36,25 @@ app.use('*', async (c, next) => {
 })
 
 app.route('/auth', authRoutes)
+app.route('/auth', oauthRoutes)
 app.route('/public', publicRoutes)
 app.route('/apple', appleRoutes)
 
-// El panel del comercio: todo con sesión.
+// El panel del comercio y la cartera del cliente: todo con sesión.
 app.use('/me', requireUser)
 app.use('/businesses', requireUser)
 app.use('/businesses/*', requireUser)
 app.use('/programs/*', requireUser)
 app.use('/cards/*', requireUser)
+app.use('/wallet', requireUser)
+app.use('/wallet/*', requireUser)
+app.use('/promotions/*', requireUser)
 app.route('/me', meRoutes)
 app.route('/businesses', businessRoutes)
 app.route('/programs', programRoutes)
 app.route('/cards', cardRoutes)
+app.route('/wallet', walletRoutes)
+app.route('/promotions', promotionRoutes)
 
 app.notFound((c) => c.json({ error: 'No encontrado' }, 404))
 

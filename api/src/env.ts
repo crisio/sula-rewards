@@ -9,6 +9,14 @@ export interface Env {
   RESEND_API_KEY?: string
   GMAIL_USER?: string
   GMAIL_APP_PASSWORD?: string
+  /** Entrar con Apple: los «aud» aceptados (el Bundle ID de la app; separados por comas). */
+  APPLE_SIGNIN_AUDIENCES?: string
+  /** Llave de «Sign in with Apple» (.p8, PEM) y su Key ID: para revocar el acceso al borrar la cuenta. */
+  APPLE_SIGNIN_KEY?: string
+  APPLE_SIGNIN_KEY_ID?: string
+  /** Entrar con Google: los client ID de OAuth (el de iOS lo lee la app en /auth/config). */
+  GOOGLE_IOS_CLIENT_ID?: string
+  GOOGLE_WEB_CLIENT_ID?: string
   /** Cuenta para la revisión de la App Store: ese correo entra con REVIEW_CODE (6 dígitos) y no se le manda correo. */
   REVIEW_EMAIL?: string
   REVIEW_CODE?: string
@@ -29,7 +37,11 @@ export interface User {
   id: string
   email: string
   full_name: string | null
+  /** Su celular como cliente (+504XXXXXXXX), para unirse a programas desde la app. */
+  phone: string | null
 }
+
+export const USER_COLUMNS = 'id, email, full_name, phone'
 
 export type AppEnv = { Bindings: Env; Variables: { user: User; sessionHash: string } }
 
@@ -43,6 +55,8 @@ export interface Business {
   category: string | null
   city: string
   created_at: string
+  /** Cambia cada vez que se sube el logo; NULL = sin logo. */
+  logo_version: number | null
 }
 
 export interface Program {
@@ -74,6 +88,8 @@ export interface Card {
   google_saved: number
   created_at: string
   updated_at: number
+  /** La cuenta del cliente que la guardó en la app (NULL si no la tiene en ninguna). */
+  user_id: string | null
 }
 
 /** Columnas del programa que viajan a la app (en la tarjeta pública y en el panel). */

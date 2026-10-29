@@ -4,3 +4,5 @@ EMAIL_MODE=log
 # Opcional: cuenta para la revisión de la App Store (entra con este código fijo y no se le manda correo)
 REVIEW_EMAIL=
 REVIEW_CODE=
+# Opcional: la llave .p8 de Sign in with Apple (para revocar al borrar la cuenta; ver docs/login.md)
+APPLE_SIGNIN_KEY=

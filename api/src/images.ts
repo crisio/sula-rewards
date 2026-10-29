@@ -68,13 +68,13 @@ function encode(width: number, height: number, hex: string, alpha: Float32Array)
 }
 
 /** PNG con transparencia: `pixels` trae RGBA por pixel. */
-function encodeRGBA(width: number, height: number, pixels: Uint8Array) {
+export function encodeRGBA(width: number, height: number, pixels: Uint8Array) {
   const raw = new Uint8Array((width * 4 + 1) * height)
   for (let y = 0; y < height; y++) raw.set(pixels.subarray(y * width * 4, (y + 1) * width * 4), y * (width * 4 + 1) + 1)
   return png(width, height, 6, [], raw)
 }
 
-const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v)
+export const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v)
 
 function distToSegment(px: number, py: number, ax: number, ay: number, bx: number, by: number) {
   const dx = bx - ax
@@ -95,7 +95,7 @@ function distToPath(px: number, py: number, path: Path) {
 }
 
 /** Distancia con signo al borde de un rectángulo redondeado centrado en (0, 0): negativa adentro. */
-function roundedRectDist(px: number, py: number, halfWidth: number, halfHeight: number, radius: number) {
+export function roundedRectDist(px: number, py: number, halfWidth: number, halfHeight: number, radius: number) {
   const qx = Math.abs(px) - (halfWidth - radius)
   const qy = Math.abs(py) - (halfHeight - radius)
   return Math.sqrt(Math.max(qx, 0) ** 2 + Math.max(qy, 0) ** 2) + Math.min(Math.max(qx, qy), 0) - radius

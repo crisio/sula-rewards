@@ -1,6 +1,7 @@
 import type { Business, Card, Env, Program } from './env'
 import { importRsaKey } from './der'
 import { cardUrl } from './apple'
+import { logoUrl } from './logo'
 import { formatCardId, headline, status } from './rules'
 
 // Google Wallet: pase genérico con el color del programa. El enlace «Guardar en Google Wallet» lleva el pase
@@ -23,7 +24,7 @@ export function genericObject(env: Env, apiOrigin: string, card: Card, program: 
     classId: classId(env, program),
     state: 'ACTIVE',
     hexBackgroundColor: program.color,
-    logo: { sourceUri: { uri: `${apiOrigin}/public/programs/${program.id}/icon.png` }, contentDescription: localized(business.name) },
+    logo: { sourceUri: { uri: logoUrl(apiOrigin, business) ?? `${apiOrigin}/public/programs/${program.id}/icon.png` }, contentDescription: localized(business.name) },
     cardTitle: localized(business.name),
     subheader: localized(head.label),
     header: localized(head.value),

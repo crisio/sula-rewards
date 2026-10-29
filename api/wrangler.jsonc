@@ -16,12 +16,20 @@
     "APPLE_PASS_TYPE_ID": "pass.com.cristopherpineda.sularewards",
     "APPLE_TEAM_ID": "3BZ685RYJ3",
     // Google Wallet (ver docs/wallet.md). Sin el emisor y sus secretos, el botón de Google Wallet no aparece.
-    "GOOGLE_WALLET_ISSUER_ID": ""
+    "GOOGLE_WALLET_ISSUER_ID": "",
+    // Entrar con Apple (ver docs/login.md): el Bundle ID de la app de iOS. APPLE_SIGNIN_KEY_ID y el secreto
+    // APPLE_SIGNIN_KEY (la llave .p8) sirven para revocar el acceso cuando alguien borra su cuenta.
+    "APPLE_SIGNIN_AUDIENCES": "com.cristopherpineda.sularewards",
+    "APPLE_SIGNIN_KEY_ID": "",
+    // Entrar con Google (ver docs/login.md): los client ID de OAuth. Sin ellos, el botón de Google no aparece.
+    "GOOGLE_IOS_CLIENT_ID": "",
+    "GOOGLE_WEB_CLIENT_ID": ""
   },
   // Al publicar por primera vez, Cloudflare crea la base de datos automáticamente.
   "d1_databases": [{ "binding": "DB", "database_name": "sula-rewards", "migrations_dir": "migrations" }]
   // Secretos (no van aquí): AUTH_SECRET, RESEND_API_KEY (o GMAIL_USER y GMAIL_APP_PASSWORD si usas EMAIL_MODE "smtp")
   // Apple Wallet: APPLE_PASS_CERT, APPLE_PASS_KEY y APPLE_WWDR_CERT (PEM)
   // Google Wallet: GOOGLE_SA_EMAIL y GOOGLE_SA_KEY (la llave privada PEM de la cuenta de servicio)
+  // Entrar con Apple: APPLE_SIGNIN_KEY (la llave .p8 de Sign in with Apple, PEM)
   // Opcionales, para la revisión de la App Store: REVIEW_EMAIL y REVIEW_CODE (ver docs/app-store.md)
 }

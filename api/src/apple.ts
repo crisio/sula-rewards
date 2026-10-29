@@ -4,6 +4,7 @@ import type { AppEnv, Business, Card, Env, Program } from './env'
 import { safeEqual } from './crypto'
 import { signDetached } from './der'
 import { programIcon, programLogo, stampStrip } from './images'
+import { blobBytes } from './logo'
 import { formatCardId, headline, status } from './rules'
 
 // Apple Wallet: el pase (.pkpass) de cada tarjeta y el servicio web con el que el iPhone pregunta si cambió.
@@ -51,6 +52,21 @@ export function passJson(env: Env, apiOrigin: string, card: Card, program: Progr
   }
 }
 
+/** logo.png del pase: el que subió el negocio o, si no tiene, el ícono del programa. */
+async function passLogo(env: Env, program: Program, business: Business): Promise<Record<string, Uint8Array>> {
+  if (business.logo_version) {
+    const row = await env.DB.prepare('SELECT pass_1x, pass_2x, pass_3x FROM business_logos WHERE business_id = ?')
+      .bind(business.id)
+      .first<{ pass_1x: unknown; pass_2x: unknown; pass_3x: unknown }>()
+    if (row) return { 'logo.png': blobBytes(row.pass_1x), 'logo@2x.png': blobBytes(row.pass_2x), 'logo@3x.png': blobBytes(row.pass_3x) }
+  }
+  return {
+    'logo.png': programLogo(program.type, program.color, 30),
+    'logo@2x.png': programLogo(program.type, program.color, 60),
+    'logo@3x.png': programLogo(program.type, program.color, 90),
+  }
+}
+
 const toHex = (buf: ArrayBuffer) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('')
 
 /** El .pkpass: un zip con pass.json, las imágenes, manifest.json (SHA-1 de cada archivo) y su firma. */
@@ -60,10 +76,8 @@ export async function buildPkpass(env: Env, apiOrigin: string, card: Card, progr
     'icon.png': programIcon(program.color, 29),
     'icon@2x.png': programIcon(program.color, 58),
     'icon@3x.png': programIcon(program.color, 87),
-    // Como en la web: el ícono del programa en un cuadro blanco de 30 puntos, junto al nombre del negocio.
-    'logo.png': programLogo(program.type, program.color, 30),
-    'logo@2x.png': programLogo(program.type, program.color, 60),
-    'logo@3x.png': programLogo(program.type, program.color, 90),
+    // Como en la web: el logo del negocio (o el ícono del programa en un cuadro blanco) de 30 puntos, junto a su nombre.
+    ...(await passLogo(env, program, business)),
   }
   if (program.type === 'sellos') {
     // En la storeCard la tira mide 375×144 puntos; con otra proporción Wallet la agranda y recorta los lados.

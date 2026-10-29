@@ -61,13 +61,14 @@ jobs:
           GOOGLE_SA_KEY: ${{ secrets.GOOGLE_SA_KEY }}
           REVIEW_EMAIL: ${{ secrets.REVIEW_EMAIL }}
           REVIEW_CODE: ${{ secrets.REVIEW_CODE }}
+          APPLE_SIGNIN_KEY: ${{ secrets.APPLE_SIGNIN_KEY }}
         run: |
           if [ ${#AUTH_SECRET} -lt 32 ]; then
             echo "::error::Falta el secreto AUTH_SECRET (mínimo 32 caracteres). Revisa el README."
             exit 1
           fi
           node -e '
-            const keys = ["AUTH_SECRET", "RESEND_API_KEY", "GMAIL_USER", "GMAIL_APP_PASSWORD", "APPLE_PASS_CERT", "APPLE_PASS_KEY", "APPLE_WWDR_CERT", "GOOGLE_SA_EMAIL", "GOOGLE_SA_KEY", "REVIEW_EMAIL", "REVIEW_CODE"]
+            const keys = ["AUTH_SECRET", "RESEND_API_KEY", "GMAIL_USER", "GMAIL_APP_PASSWORD", "APPLE_PASS_CERT", "APPLE_PASS_KEY", "APPLE_WWDR_CERT", "GOOGLE_SA_EMAIL", "GOOGLE_SA_KEY", "REVIEW_EMAIL", "REVIEW_CODE", "APPLE_SIGNIN_KEY"]
             const out = Object.fromEntries(keys.filter((k) => process.env[k]).map((k) => [k, process.env[k]]))
             require("fs").writeFileSync(process.env.RUNNER_TEMP + "/secrets.json", JSON.stringify(out))
           '

@@ -1,9 +1,11 @@
 import { Hono } from 'hono'
 import { createMiddleware } from 'hono/factory'
-import type { AppEnv, Env, User } from './env'
+import { USER_COLUMNS, type AppEnv, type Env, type User } from './env'
 import { hmac, randomCode, randomToken, safeEqual, sha256 } from './crypto'
 import { loginCodeMail, sendMail } from './email'
 import { fail } from './errors'
+import { normalizePhone, text } from './rules'
+import { revokeApple } from './jwt'
 
 const MINUTE = 60_000
 const DAY = 24 * 60 * MINUTE
@@ -92,19 +94,28 @@ authRoutes.post('/verify', async (c) => {
   }
 
   await c.env.DB.prepare('DELETE FROM auth_codes WHERE email = ?').bind(email).run()
-  let user = await c.env.DB.prepare('SELECT id, email, full_name FROM users WHERE email = ?').bind(email).first<User>()
-  if (!user) {
-    user = { id: crypto.randomUUID(), email, full_name: null }
-    await c.env.DB.prepare('INSERT INTO users (id, email) VALUES (?, ?)').bind(user.id, email).run()
-  }
-
-  const token = randomToken()
-  await c.env.DB.prepare('INSERT INTO sessions (token_hash, user_id, expires_at, refreshed_at) VALUES (?, ?, ?, ?)')
-    .bind(await sha256(token), user.id, now + SESSION_TTL, now)
-    .run()
-
-  return c.json({ token, user })
+  const user = (await findUserByEmail(c.env, email)) ?? (await createUser(c.env, email, null))
+  return c.json({ token: await createSession(c.env, user.id), user })
 })
+
+export const findUserByEmail = (env: Env, email: string) =>
+  env.DB.prepare(`SELECT ${USER_COLUMNS} FROM users WHERE email = ?`).bind(email).first<User>()
+
+export async function createUser(env: Env, email: string, fullName: string | null) {
+  const user: User = { id: crypto.randomUUID(), email, full_name: fullName, phone: null }
+  await env.DB.prepare('INSERT INTO users (id, email, full_name) VALUES (?, ?, ?)').bind(user.id, email, fullName).run()
+  return user
+}
+
+/** Abre una sesión y regresa su token (solo se guarda su SHA-256). */
+export async function createSession(env: Env, userId: string) {
+  const token = randomToken()
+  const now = Date.now()
+  await env.DB.prepare('INSERT INTO sessions (token_hash, user_id, expires_at, refreshed_at) VALUES (?, ?, ?, ?)')
+    .bind(await sha256(token), userId, now + SESSION_TTL, now)
+    .run()
+  return token
+}
 
 /** Exige `Authorization: Bearer <token>` válido y deja al usuario en c.var.user. */
 export const requireUser = createMiddleware<AppEnv>(async (c, next) => {
@@ -114,7 +125,7 @@ export const requireUser = createMiddleware<AppEnv>(async (c, next) => {
   const hash = await sha256(token)
   const now = Date.now()
   const row = await c.env.DB.prepare(
-    `SELECT u.id, u.email, u.full_name, s.refreshed_at
+    `SELECT ${USER_COLUMNS.split(', ').map((col) => `u.${col}`).join(', ')}, s.refreshed_at
      FROM sessions s JOIN users u ON u.id = s.user_id
      WHERE s.token_hash = ? AND s.expires_at > ?`,
   )
@@ -144,17 +155,28 @@ export const meRoutes = new Hono<AppEnv>()
 
 meRoutes.get('/', (c) => c.json(c.var.user))
 
+// Nombre y celular (el celular es para unirse a programas como cliente). Solo cambia lo que viene.
 meRoutes.patch('/', async (c) => {
-  const body = await c.req.json<{ full_name?: string }>().catch(() => ({}) as { full_name?: string })
-  const fullName = String(body.full_name ?? '').trim().slice(0, 80)
-  if (!fullName) fail(400, 'Escribe tu nombre')
-  await c.env.DB.prepare('UPDATE users SET full_name = ? WHERE id = ?').bind(fullName, c.var.user.id).run()
-  return c.json({ ...c.var.user, full_name: fullName })
+  const body = await c.req.json<Record<string, unknown>>().catch(() => ({}) as Record<string, unknown>)
+  const next = {
+    full_name: body.full_name === undefined ? c.var.user.full_name : text(body.full_name, 'tu nombre', { min: 2, max: 80 }),
+    phone: body.phone === undefined ? c.var.user.phone : body.phone ? normalizePhone(body.phone) : null,
+  }
+  await c.env.DB.prepare('UPDATE users SET full_name = ?, phone = ? WHERE id = ?').bind(next.full_name, next.phone, c.var.user.id).run()
+  return c.json({ ...c.var.user, ...next })
 })
 
 // Borrar la cuenta (lo pide la App Store): sus negocios, programas, tarjetas, movimientos y sesiones se van en cascada.
-// Los pases que los clientes guardaron en el Wallet dejan de actualizarse.
+// Los pases que los clientes guardaron en el Wallet dejan de actualizarse. Las tarjetas que tenía como cliente siguen
+// en sus negocios, solo dejan de estar en su cuenta.
 meRoutes.delete('/', async (c) => {
+  // Si entró con Apple, se le revoca el acceso a la app (lo pide la App Store). No bloquea el borrado.
+  const { results: apple } = await c.env.DB.prepare(
+    "SELECT refresh_token FROM identities WHERE user_id = ? AND provider = 'apple' AND refresh_token IS NOT NULL",
+  )
+    .bind(c.var.user.id)
+    .all<{ refresh_token: string }>()
+  for (const { refresh_token } of apple) c.executionCtx.waitUntil(revokeApple(c.env, refresh_token))
   await c.env.DB.prepare('DELETE FROM users WHERE id = ?').bind(c.var.user.id).run()
   return c.json({ ok: true })
 })

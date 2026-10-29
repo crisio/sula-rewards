@@ -3,6 +3,7 @@ import type { AppEnv, Business, Card } from './env'
 import { ownedProgram } from './access'
 import { normalizeCardId } from './crypto'
 import { createCard, parseCustomer } from './cards'
+import { businessJson } from './logo'
 import { fail } from './errors'
 import { cents, color, formatCardId, headline, text } from './rules'
 
@@ -17,7 +18,7 @@ programRoutes.get('/:id', async (c) => {
   )
     .bind(program.id)
     .first()
-  return c.json({ ...program, business, stats })
+  return c.json({ ...program, business: businessJson(new URL(c.req.url).origin, business!), stats })
 })
 
 // Lo que se puede cambiar sin afectar las tarjetas que ya existen (la meta de sellos o el % no se tocan).

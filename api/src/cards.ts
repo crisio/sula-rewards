@@ -7,6 +7,7 @@ import { randomCardId, randomToken } from './crypto'
 import { fail } from './errors'
 import { appleConfigured } from './apple'
 import { googleConfigured, syncGoogle } from './google'
+import { logoUrl } from './logo'
 import { cashbackFor, cents, formatCardId, headline, int, lempiras, MAX_CENTS, normalizePhone, pointsFor, status, text } from './rules'
 
 export interface CustomerInput {
@@ -24,7 +25,7 @@ export function parseCustomer(body: Record<string, unknown>): CustomerInput {
 }
 
 /** Crea la tarjeta de un cliente en un programa (desde caja o desde la página pública /unete). */
-export async function createCard(env: Env, program: Program, customer: CustomerInput, opts: { initialCents?: number; byUser?: string } = {}) {
+export async function createCard(env: Env, program: Program, customer: CustomerInput, opts: { initialCents?: number; byUser?: string; userId?: string } = {}) {
   const now = Date.now()
   const card: Card = {
     id: randomCardId(),
@@ -38,13 +39,14 @@ export async function createCard(env: Env, program: Program, customer: CustomerI
     google_saved: 0,
     created_at: new Date(now).toISOString(),
     updated_at: now,
+    user_id: opts.userId ?? null,
   }
   try {
     await env.DB.batch([
       env.DB.prepare(
-        `INSERT INTO cards (id, program_id, customer_name, phone, email, balance_cents, apple_token, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      ).bind(card.id, card.program_id, card.customer_name, card.phone, card.email, card.balance_cents, card.apple_token, card.created_at, card.updated_at),
+        `INSERT INTO cards (id, program_id, customer_name, phone, email, balance_cents, apple_token, created_at, updated_at, user_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ).bind(card.id, card.program_id, card.customer_name, card.phone, card.email, card.balance_cents, card.apple_token, card.created_at, card.updated_at, card.user_id),
       env.DB.prepare(`INSERT INTO movements (id, card_id, kind, cents, by_user) VALUES (?, ?, 'alta', ?, ?)`).bind(
         crypto.randomUUID(),
         card.id,
@@ -60,7 +62,7 @@ export async function createCard(env: Env, program: Program, customer: CustomerI
 }
 
 /** Lo que ve cualquiera con el enlace de la tarjeta (el cliente). Sin teléfono ni correo. */
-export function cardView(env: Env, card: Card, program: Program, business: Business) {
+export function cardView(env: Env, origin: string, card: Card, program: Program, business: Business) {
   return {
     id: card.id,
     code: formatCardId(card.id),
@@ -84,7 +86,7 @@ export function cardView(env: Env, card: Card, program: Program, business: Busin
       reward_points: program.reward_points,
       cashback_bp: program.cashback_bp,
     },
-    business: { name: business.name, slug: business.slug, city: business.city, category: business.category },
+    business: { name: business.name, slug: business.slug, city: business.city, category: business.category, logo_url: logoUrl(origin, business) },
     wallet: { apple: appleConfigured(env), google: googleConfigured(env) },
   }
 }
@@ -204,7 +206,7 @@ cardRoutes.get('/:id', async (c) => {
   )
     .bind(card.id)
     .all()
-  return c.json({ ...cardView(c.env, card, program, business), phone: card.phone, email: card.email, movements })
+  return c.json({ ...cardView(c.env, new URL(c.req.url).origin, card, program, business), phone: card.phone, email: card.email, movements })
 })
 
 // Sumar un sello, registrar una compra, canjear, usar saldo o recargar. El movimiento y el cambio van juntos.
@@ -232,7 +234,7 @@ cardRoutes.post('/:id/actions', async (c) => {
 
   afterCardChange(c, next, program, business)
   return c.json({
-    ...cardView(c.env, next, program, business),
+    ...cardView(c.env, new URL(c.req.url).origin, next, program, business),
     phone: next.phone,
     email: next.email,
     result: {
