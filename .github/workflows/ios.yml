@@ -32,4 +32,5 @@ jobs:
             CODE_SIGNING_ALLOWED=NO 2>&1 | tee "$RUNNER_TEMP/build.log"
       - name: Errores y avisos del compilador
         if: always()
-        run: grep -E "(error|warning): " "$RUNNER_TEMP/build.log" | grep "/ios/" | sort -u || echo "Sin errores ni avisos."
+        run: |
+          grep -E "(error|warning): " "$RUNNER_TEMP/build.log" | grep "/ios/" | sort -u || echo "Sin errores ni avisos."
