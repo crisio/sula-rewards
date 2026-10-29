@@ -9,6 +9,9 @@
 - Cuenta para la revisión de la App Store (`REVIEW_EMAIL` y `REVIEW_CODE`).
 - Páginas de privacidad y soporte (`/privacidad.html` y `/soporte.html`).
 - CI que compila la app de iOS.
+- Apple Wallet con los certificados reales. El pase se ve como la tarjeta de la web: la tira de sellos mide 375×144
+  (la de la storeCard; antes Wallet la recortaba de los lados), con panel claro, círculos punteados y palomita, en @1x,
+  @2x y @3x, y el logo con el ícono del programa en un cuadro blanco.
 
 ## 0.1.0 — 29 de octubre de 2026
 

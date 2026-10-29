@@ -3,7 +3,7 @@ import { strToU8, zipSync } from 'fflate'
 import type { AppEnv, Business, Card, Env, Program } from './env'
 import { safeEqual } from './crypto'
 import { signDetached } from './der'
-import { programIcon, stampStrip } from './images'
+import { programIcon, programLogo, stampStrip } from './images'
 import { formatCardId, headline, status } from './rules'
 
 // Apple Wallet: el pase (.pkpass) de cada tarjeta y el servicio web con el que el iPhone pregunta si cambió.
@@ -60,16 +60,23 @@ export async function buildPkpass(env: Env, apiOrigin: string, card: Card, progr
     'icon.png': programIcon(program.color, 29),
     'icon@2x.png': programIcon(program.color, 58),
     'icon@3x.png': programIcon(program.color, 87),
+    // Como en la web: el ícono del programa en un cuadro blanco de 30 puntos, junto al nombre del negocio.
+    'logo.png': programLogo(program.type, program.color, 30),
+    'logo@2x.png': programLogo(program.type, program.color, 60),
+    'logo@3x.png': programLogo(program.type, program.color, 90),
   }
   if (program.type === 'sellos') {
-    files['strip.png'] = stampStrip(program.color, program.stamps_goal!, card.stamps, 1)
-    files['strip@2x.png'] = stampStrip(program.color, program.stamps_goal!, card.stamps, 2)
+    // En la storeCard la tira mide 375×144 puntos; con otra proporción Wallet la agranda y recorta los lados.
+    for (const scale of [1, 2, 3]) {
+      files[scale === 1 ? 'strip.png' : `strip@${scale}x.png`] = stampStrip(program.color, program.stamps_goal!, card.stamps, scale, 144)
+    }
   }
   const manifest: Record<string, string> = {}
   for (const [name, data] of Object.entries(files)) manifest[name] = toHex(await crypto.subtle.digest('SHA-1', data))
   files['manifest.json'] = strToU8(JSON.stringify(manifest))
   files['signature'] = await signDetached(files['manifest.json'], env.APPLE_PASS_CERT!, env.APPLE_PASS_KEY!, env.APPLE_WWDR_CERT!)
-  return zipSync(files)
+  // Los PNG ya vienen comprimidos: se guardan tal cual (comprimirlos otra vez solo gasta CPU).
+  return zipSync(Object.fromEntries(Object.entries(files).map(([name, data]) => [name, name.endsWith('.png') ? [data, { level: 0 }] : data])))
 }
 
 export function pkpassResponse(pass: Uint8Array, card: Card) {

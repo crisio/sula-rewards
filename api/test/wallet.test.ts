@@ -1,7 +1,8 @@
 import { env } from 'cloudflare:test'
-import { unzipSync, strFromU8 } from 'fflate'
+import { unzipSync, unzlibSync, strFromU8 } from 'fflate'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { bytesOf, children, concat, oid, readNode, seq, setOf, smallInt, tlv, utcTime, nullValue } from '../src/der'
+import { stampStrip } from '../src/images'
 import { act, call, newCard, setupProgram } from './helpers'
 
 const SELLOS = { type: 'sellos', name: 'Café de la casa', stamps_goal: 8, reward: 'Café gratis' }
@@ -74,7 +75,20 @@ describe('Apple Wallet', () => {
     expect(res.status).toBe(200)
     expect(res.res.headers.get('Content-Type')).toBe('application/vnd.apple.pkpass')
     const files = unzipSync(new Uint8Array(await res.res.arrayBuffer()))
-    expect(Object.keys(files).sort()).toEqual(['icon.png', 'icon@2x.png', 'icon@3x.png', 'manifest.json', 'pass.json', 'signature', 'strip.png', 'strip@2x.png'])
+    expect(Object.keys(files).sort()).toEqual([
+      'icon.png',
+      'icon@2x.png',
+      'icon@3x.png',
+      'logo.png',
+      'logo@2x.png',
+      'logo@3x.png',
+      'manifest.json',
+      'pass.json',
+      'signature',
+      'strip.png',
+      'strip@2x.png',
+      'strip@3x.png',
+    ])
 
     const pass = JSON.parse(strFromU8(files['pass.json']))
     expect(pass).toMatchObject({
@@ -109,7 +123,10 @@ describe('Apple Wallet', () => {
     // Las imágenes son PNG del tamaño que pide Apple
     const size = (png: Uint8Array) => [new DataView(png.buffer, png.byteOffset).getUint32(16), new DataView(png.buffer, png.byteOffset).getUint32(20)]
     expect(size(files['icon@2x.png'])).toEqual([58, 58])
-    expect(size(files['strip@2x.png'])).toEqual([750, 246])
+    expect(size(files['logo@3x.png'])).toEqual([90, 90])
+    // La tira de la storeCard mide 375×144 puntos: con otra proporción Wallet la agranda y recorta los lados
+    expect(size(files['strip@2x.png'])).toEqual([750, 288])
+    expect(size(files['strip@3x.png'])).toEqual([1125, 432])
   })
 
   it('el iPhone se registra, pregunta qué cambió y baja la versión nueva', async () => {
@@ -205,7 +222,33 @@ describe('Google Wallet', () => {
   })
 })
 
+/** Los índices de la paleta de un PNG de 8 bits sin entrelazar (una fila por renglón, sin el byte de filtro). */
+function pixelRows(png: Uint8Array) {
+  const view = new DataView(png.buffer, png.byteOffset)
+  const [width, height] = [view.getUint32(16), view.getUint32(20)]
+  const parts: Uint8Array[] = []
+  for (let at = 8; at < png.length; ) {
+    const length = view.getUint32(at)
+    if (strFromU8(png.subarray(at + 4, at + 8)) === 'IDAT') parts.push(png.subarray(at + 8, at + 8 + length))
+    at += 12 + length
+  }
+  const raw = unzlibSync(concat(...parts))
+  return Array.from({ length: height }, (_, y) => raw.subarray(y * (width + 1) + 1, (y + 1) * (width + 1)))
+}
+
 describe('imágenes', () => {
+  it('la tira deja margen a los lados y dibuja los sellos llenos en blanco', () => {
+    for (const goal of [6, 10, 12, 20]) {
+      const rows = pixelRows(stampStrip('#4ea155', goal, 3, 2, 144))
+      expect(rows.length).toBe(288)
+      for (const row of rows) {
+        expect(Math.max(...row.subarray(0, 32))).toBe(0) // 16 puntos sin nada a cada lado
+        expect(Math.max(...row.subarray(row.length - 32))).toBe(0)
+      }
+      expect(rows.reduce((max, row) => row.reduce((m, v) => Math.max(m, v), max), 0)).toBe(16) // el blanco de los sellos llenos
+    }
+  })
+
   it('la tira de sellos y el ícono son PNG válidos', async () => {
     const { token, program } = await setupProgram('png@sps.hn', SELLOS)
     const cardId = await newCard(token, program.id)
