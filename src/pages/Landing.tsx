@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth'
+import AppStoreBadge from '../components/AppStoreBadge'
 import Logo from '../components/Logo'
 import WalletCard from '../components/WalletCard'
 import { AppleIcon, GoogleWalletIcon, TypeIcon } from '../components/Icons'
@@ -19,6 +20,14 @@ const TYPES: { type: ProgramType; title: string; text: string; example: string }
   { type: 'puntos', title: 'Puntos', text: 'Por cada L 100 de compra suman puntos que cambian por premios.', example: '10 puntos por cada L 100' },
   { type: 'cashback', title: 'Cashback', text: 'Un porcentaje de cada compra regresa como saldo para la próxima visita.', example: '5 % de vuelta en lempiras' },
   { type: 'giftcard', title: 'Gift cards', text: 'Tarjetas de regalo con saldo, para vender en caja y cobrar con el QR.', example: 'L 500 para regalar' },
+]
+
+// Capturas de la app de iOS (public/app), las mismas de la App Store.
+const SHOTS = [
+  { file: '01-tarjetas.jpg', alt: 'Mis tarjetas: las tarjetas de lealtad de cada negocio' },
+  { file: '02-tarjeta.jpg', alt: 'Una tarjeta con su QR para caja y el botón para agregarla al Wallet' },
+  { file: '03-explorar.jpg', alt: 'Explorar: promociones y negocios de San Pedro Sula' },
+  { file: '06-caja-tarjeta.jpg', alt: 'La caja del negocio: 7 de 8 sellos y el botón +1 sello' },
 ]
 
 export default function Landing() {
@@ -56,6 +65,7 @@ export default function Landing() {
               <Link className="btn btn-primary btn-big" to={user ? '/panel' : '/entrar'}>
                 Crear mi programa gratis
               </Link>
+              <AppStoreBadge />
             </div>
           </div>
 
@@ -119,6 +129,23 @@ export default function Landing() {
               <h3>En caja le sumas</h3>
               <p className="muted">Escaneas su tarjeta con el teléfono de la caja y le das el sello, los puntos o el cashback. Su tarjeta se actualiza sola.</p>
             </div>
+          </div>
+        </section>
+
+        <section className="section">
+          <div className="row spread app-head">
+            <div className="stack" style={{ gap: 8 }}>
+              <h2>La app para iPhone</h2>
+              <p className="muted" style={{ margin: 0 }}>
+                Tus clientes ven todas sus tarjetas y las promociones de Explorar. Tu negocio suma sellos y puntos con la cámara.
+              </p>
+            </div>
+            <AppStoreBadge />
+          </div>
+          <div className="app-shots">
+            {SHOTS.map((s) => (
+              <img key={s.file} src={`${import.meta.env.BASE_URL}app/${s.file}`} alt={s.alt} width={460} height={1000} loading="lazy" />
+            ))}
           </div>
         </section>
 

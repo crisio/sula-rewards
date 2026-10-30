@@ -1,5 +1,11 @@
 # Cambios
 
+## Sin publicar
+
+- Página de inicio: sección «La app para iPhone» con capturas de la app (`public/app/`) y el botón del App Store. Dice
+  «Pronto en el App Store» hasta que Apple publique la app; entonces cambia solo a «Descargar en el App Store» (consulta
+  `itunes.apple.com/lookup` al cargar la página).
+
 ## 0.3.0 — 29 de octubre de 2026
 
 - La app de iPhone es para clientes y negocios:

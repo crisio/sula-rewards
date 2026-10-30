@@ -758,6 +758,31 @@ h3 {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
+/* Capturas de la app de iOS */
+.app-head {
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.app-head h2 {
+  font-size: clamp(26px, 4vw, 36px);
+}
+
+.app-shots {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.app-shots img {
+  width: 100%;
+  height: auto;
+  border-radius: 28px;
+  box-shadow: var(--shadow);
+  background: var(--surface);
+}
+
 .footer {
   border-top: 1px solid var(--line);
   padding: 24px 0;
@@ -797,6 +822,20 @@ h3 {
 
   .wcard-value {
     font-size: 22px;
+  }
+
+  /* En el teléfono las capturas se deslizan de lado */
+  .app-shots {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: 62%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 8px;
+  }
+
+  .app-shots img {
+    scroll-snap-align: start;
   }
 }
 
