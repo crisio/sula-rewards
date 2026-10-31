@@ -11,12 +11,23 @@ import { parseProgram, text } from './rules'
 const MAX_BUSINESSES = 5
 const MAX_PROGRAMS = 10
 
+// Las letras con acento más comunes, a mano: en producción normalize('NFD') no siempre las separa y «Café» salía
+// «caf». Lo que no esté aquí lo intenta normalize.
+const PLAIN: [RegExp, string][] = [
+  [/[\u00e0-\u00e5]/g, 'a'],
+  [/[\u00e8-\u00eb]/g, 'e'],
+  [/[\u00ec-\u00ef]/g, 'i'],
+  [/[\u00f2-\u00f6]/g, 'o'],
+  [/[\u00f9-\u00fc]/g, 'u'],
+  [/\u00f1/g, 'n'],
+  [/\u00e7/g, 'c'],
+]
+
 /** «Café Guamilito #2» → «cafe-guamilito-2», para la página pública /unete/<slug>. */
 export const slugify = (name: string) =>
-  name
+  PLAIN.reduce((text, [accented, plain]) => text.replace(accented, plain), name.toLowerCase())
     .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
+    .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, 40) || 'negocio'

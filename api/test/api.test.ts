@@ -59,6 +59,22 @@ describe('negocios y programas', () => {
     expect(second.data.slug).toMatch(/^baleadas-dona-tere-\d{3}$/)
   })
 
+  it('el enlace quita los acentos aunque normalize no los separe', async () => {
+    const { slugify } = await import('../src/businesses')
+    expect(slugify('Café de Prueba')).toBe('cafe-de-prueba')
+    expect(slugify('PANADERÍA La Ñapa Güera')).toBe('panaderia-la-napa-guera')
+    // Como en producción: si normalize no hace nada, igual sale bien
+    const original = String.prototype.normalize
+    String.prototype.normalize = function (this: string) {
+      return String(this)
+    }
+    try {
+      expect(slugify('Café Ñandú Ébano')).toBe('cafe-nandu-ebano')
+    } finally {
+      String.prototype.normalize = original
+    }
+  })
+
   it('valida cada tipo de programa', async () => {
     const token = await login('valida@sps.hn')
     const { data: business } = await call('/businesses', { method: 'POST', token, json: { name: 'Valida' } })

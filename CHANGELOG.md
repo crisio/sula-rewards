@@ -5,6 +5,10 @@
 - Página de inicio: sección «La app para iPhone» con capturas de la app (`public/app/`) y el botón del App Store. Dice
   «Pronto en el App Store» hasta que Apple publique la app; entonces cambia solo a «Descargar en el App Store» (consulta
   `itunes.apple.com/lookup` al cargar la página).
+- El enlace de los negocios con acento salía cortado («Café» → `caf-…`) porque en producción `normalize('NFD')` no
+  separaba los acentos. Ahora las letras con acento se cambian a mano. Los enlaces que ya existían no cambian.
+- Lo que Apple Wallet reporta en `/apple/v1/log` se guarda en la tabla `apple_logs` (migración 0004) para revisar por qué
+  un iPhone no se registra para las actualizaciones del pase.
 
 ## 0.3.0 — 29 de octubre de 2026
 

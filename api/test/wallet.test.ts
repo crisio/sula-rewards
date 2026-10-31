@@ -132,6 +132,15 @@ describe('Apple Wallet', () => {
   })
 })
 
+describe('Apple Wallet: lo que reporta el iPhone', () => {
+  it('guarda los mensajes de /v1/log (los últimos 200)', async () => {
+    expect((await call('/apple/v1/log', { method: 'POST', json: { logs: ['Web service error: 401', 42] } })).status).toBe(200)
+    const { results } = await env.DB.prepare('SELECT message FROM apple_logs ORDER BY id').all<{ message: string }>()
+    expect(results.map((r) => r.message)).toEqual(['Web service error: 401', '42'])
+    expect((await call('/apple/v1/log', { method: 'POST', body: 'no es json' })).status).toBe(200)
+  })
+})
+
 describe('Google Wallet', () => {
   async function googleEnv() {
     const keys = await rsaKeys()

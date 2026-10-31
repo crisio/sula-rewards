@@ -164,8 +164,16 @@ appleRoutes.get('/v1/passes/:passType/:serial', async (c) => {
   return pkpassResponse(await buildPkpass(c.env, new URL(c.req.url).origin, card, program!, business!), card)
 })
 
+// Errores que reporta Wallet. Se guardan los últimos 200 en apple_logs para revisarlos desde la base.
 appleRoutes.post('/v1/log', async (c) => {
-  const { logs } = await c.req.json<{ logs?: string[] }>().catch(() => ({ logs: [] }))
-  for (const line of logs ?? []) console.log('[Apple Wallet]', line)
+  const { logs } = await c.req.json<{ logs?: unknown[] }>().catch(() => ({ logs: [] as unknown[] }))
+  const lines = (Array.isArray(logs) ? logs : []).slice(0, 20).map((line) => String(line).slice(0, 500))
+  for (const line of lines) console.log('[Apple Wallet]', line)
+  if (lines.length) {
+    await c.env.DB.batch([
+      ...lines.map((line) => c.env.DB.prepare('INSERT INTO apple_logs (message) VALUES (?)').bind(line)),
+      c.env.DB.prepare('DELETE FROM apple_logs WHERE id <= (SELECT MAX(id) FROM apple_logs) - 200'),
+    ])
+  }
   return c.body(null, 200)
 })
