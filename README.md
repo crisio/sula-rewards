@@ -34,9 +34,12 @@ Los cambios de cada versión están en [CHANGELOG.md](CHANGELOG.md).
   - El negocio tiene la caja: escanear y sumar, dar de alta clientes, gift cards, programas, logo y promociones.
   - Se entra con Apple, con Google o con código ([docs/login.md](docs/login.md)). La app no es obligatoria: el cliente
     también puede guardar su tarjeta en el Wallet desde la web.
+- **App de Android** (`android/`, Kotlin y Jetpack Compose), igual que la de iPhone: Tarjetas, Explorar, Mi negocio y
+  Perfil. Se entra con Google o con código. Ver [android/README.md](android/README.md).
 - **Logo del negocio:** sale en el pase de Apple Wallet y de Google Wallet, en la tarjeta web y en la app.
 - **Promociones:** cada negocio publica hasta 5; se ven en Explorar. Se pueden reportar (con 3 reportes se pausan).
-- **Privacidad y soporte:** `/privacidad.html` y `/soporte.html` (las dos URL que pide la App Store).
+- **Privacidad, soporte y borrar la cuenta:** `/privacidad.html`, `/soporte.html` y `/borrar-cuenta.html` (las URL que
+  piden la App Store y Google Play).
 - **Hecho para Honduras:** lempiras (el dinero se guarda en centavos), celulares de 8 dígitos y hora de Honduras.
 
 ## Arquitectura (todo en planes gratis)
@@ -45,7 +48,7 @@ Los cambios de cada versión están en [CHANGELOG.md](CHANGELOG.md).
 Teléfono (React + Vite) ──► GitHub Pages (crisio.github.io/sula-rewards)
         │  token de sesión (Bearer)
         ▼
-iPhone del comercio (SwiftUI, ios/) ── misma API, mismo token
+Apps de iPhone (SwiftUI, ios/) y Android (Compose, android/) ── misma API, mismo token
         │
         ▼
 Cloudflare Worker  sula-rewards-api (Hono)     ← api/
@@ -64,10 +67,12 @@ api/src/             la API
   google.ts          Google Wallet
   images.ts          el ícono y la tira de sellos (PNG)
 api/migrations/      el esquema de la base
-ios/                 la app de iPhone para comercios (Xcode, SwiftUI)
-public/              privacidad.html y soporte.html
+ios/                 la app de iPhone para clientes y negocios (Xcode, SwiftUI)
+android/             la app de Android para clientes y negocios (Gradle, Kotlin y Compose)
+public/              privacidad.html, soporte.html y borrar-cuenta.html
 docs/wallet.md       cómo conseguir los certificados de Apple y la cuenta de Google
 docs/app-store.md    lo que pide Apple para publicar la app de iOS
+docs/google-play.md  lo que pide Google para publicar la app de Android
 docs/login.md        entrar con Apple y con Google (llave .p8 y client ID)
 ```
 
@@ -135,6 +140,11 @@ Con la API ya publicada: crea los secretos `REVIEW_EMAIL` y `REVIEW_CODE` (la cu
 correr **Deploy API**, y sigue [docs/app-store.md](docs/app-store.md) desde una Mac con Xcode
 (**Product → Archive → Distribute App → App Store Connect**).
 
+### 6. La app de Android en Google Play
+
+Crea la cuenta de Google Play Console, la llave de subida (los secretos `ANDROID_KEYSTORE_*`) y sigue
+[docs/google-play.md](docs/google-play.md). El `.aab` firmado sale de **Actions → Android** en cada cambio.
+
 ## Pendiente
 
 - **Avisos push de Apple Wallet (APNs):** hoy el iPhone baja la versión nueva al actualizar el pase; con APNs se
@@ -143,5 +153,5 @@ correr **Deploy API**, y sigue [docs/app-store.md](docs/app-store.md) desde una 
 - Anular un movimiento hecho por error, y reportes por día y por cajero.
 - Los botones oficiales «Add to Apple Wallet» y «Add to Google Wallet» (Apple y Google piden usar sus insignias).
 - Límite de altas por hora en `/unete` y términos de uso.
-- Borrar la cuenta desde el panel web (hoy se hace desde la app de iPhone o pidiéndolo por correo).
+- Borrar la cuenta desde el panel web (hoy se hace desde la app de iPhone o de Android, o pidiéndolo por correo).
 - Dominio propio (con él, `VITE_BASE=/` y actualizar `APP_URL` y `ALLOWED_ORIGINS` en `api/wrangler.jsonc`).

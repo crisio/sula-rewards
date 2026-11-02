@@ -1,6 +1,6 @@
 # Entrar con Apple, con Google o con correo
 
-La app de iOS ofrece las tres. La API (`api/src/oauth.ts`) verifica el token que firma Apple o Google con sus llaves
+La app de iOS ofrece las tres; la de Android, Google y correo. La API (`api/src/oauth.ts`) verifica el token que firma Apple o Google con sus llaves
 públicas, y crea la cuenta la primera vez (o entra a la que ya tiene ese correo). El código por correo funciona igual que
 siempre.
 
@@ -41,8 +41,13 @@ La app lo lee de la API (`GET /auth/config`), así que el botón **Continuar con
 compilar la app. No usa el SDK de Google: hace el inicio de sesión con PKCE en la hoja del sistema
 (`ios/SulaRewards/Core/Auth.swift`).
 
-Si algún día el panel web también tiene «Entrar con Google», crea otro ID de cliente de tipo **Aplicación web** (con
-`https://crisio.github.io` como origen) y ponlo en `GOOGLE_WEB_CLIENT_ID`.
+### En Android
+
+La app de Android entra con Google con el administrador de credenciales del sistema (Credential Manager). El token sale
+para el ID de cliente **Aplicación web** (`GOOGLE_WEB_CLIENT_ID`), que la API también acepta, y Google revisa que la app
+esté registrada con un ID de cliente **Android** (paquete y huella SHA-1) en el mismo proyecto. Los pasos están en
+[google-play.md](google-play.md#5-entrar-con-google-en-android-opcional-pero-recomendado). Con `GOOGLE_WEB_CLIENT_ID`
+vacío, la app de Android solo muestra «Entrar con mi correo».
 
 ## Correo
 

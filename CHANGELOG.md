@@ -2,6 +2,12 @@
 
 ## Sin publicar
 
+- **App de Android** (`android/`, Kotlin y Jetpack Compose) para clientes y negocios, igual que la de iPhone: Tarjetas,
+  Explorar, Mi negocio (la caja, con el lector de QR de Google Play services, sin permiso de cámara) y Perfil. Entrar con
+  Google (Credential Manager, con `GOOGLE_WEB_CLIENT_ID`) o con código por correo. «Agregar a Google Wallet» cuando la API
+  lo tiene configurado. CI en `.github/workflows/android.yml` con pruebas, lint, `.apk` de prueba y `.aab` para Google
+  Play (firmado con los secretos `ANDROID_KEYSTORE_*`). Guía para publicar en `docs/google-play.md`.
+- `/borrar-cuenta.html`: cómo borrar la cuenta (Google Play pide esa URL). Privacidad y soporte hablan también de Android.
 - Página de inicio: sección «La app para iPhone» con capturas de la app (`public/app/`) y el botón del App Store. Dice
   «Pronto en el App Store» hasta que Apple publique la app; entonces cambia solo a «Descargar en el App Store» (consulta
   `itunes.apple.com/lookup` al cargar la página).
