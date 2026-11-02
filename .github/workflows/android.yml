@@ -1,0 +1,71 @@
+name: Android
+
+# Compila la app de Android, corre sus pruebas y lint, y arma el .aab para Google Play (firmado si están los secretos
+# ANDROID_KEYSTORE_*; ver docs/google-play.md). El .aab y el .apk de prueba quedan como artefactos de cada corrida.
+on:
+  push:
+    paths: ['android/**', '.github/workflows/android.yml']
+  pull_request:
+    paths: ['android/**', '.github/workflows/android.yml']
+  workflow_dispatch:
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: android
+    env:
+      # Google Play no acepta dos veces el mismo número de versión: cada corrida sube uno.
+      VERSION_CODE: ${{ github.run_number }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Pruebas y lint
+        run: ./gradlew --stacktrace testDebugUnitTest lintDebug
+      - name: APK de prueba
+        run: ./gradlew assembleDebug
+      - name: Llave de subida
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+            echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/upload.jks" >> "$GITHUB_ENV"
+            echo "Se firma con la llave de subida."
+          else
+            echo "::warning::Sin ANDROID_KEYSTORE_BASE64: el .aab sale sin firmar y Google Play no lo acepta (ver docs/google-play.md)."
+          fi
+      - name: AAB para Google Play
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: ./gradlew bundleRelease
+      - name: Huella SHA-1 de la llave (para el cliente OAuth de Android en Google Cloud)
+        if: env.ANDROID_KEYSTORE_PATH != ''
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: keytool -list -v -keystore "$ANDROID_KEYSTORE_PATH" -storepass "$ANDROID_KEYSTORE_PASSWORD" | grep -E "Alias|SHA1|SHA256" || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sula-rewards-android-${{ github.run_number }}
+          path: |
+            android/app/build/outputs/bundle/release/*.aab
+            android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: lint-${{ github.run_number }}
+          path: android/app/build/reports/
+          if-no-files-found: ignore

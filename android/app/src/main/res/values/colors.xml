@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg">#F1ECFB</color>
+    <color name="logo_ink">#1D1B26</color>
+    <color name="sellos">#4F3FE0</color>
+    <color name="puntos">#F2820F</color>
+    <color name="cashback">#16A34A</color>
+    <color name="logo_light">#F1ECFB</color>
+</resources>
