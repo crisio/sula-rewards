@@ -23,7 +23,7 @@ object Session {
         Api.onUnauthorized = { forgetLocal() }
     }
 
-    fun setUser(next: User?) {
+    fun saveUser(next: User?) {
         user = next
         Storage.set(USER_KEY, next?.let { Api.json.encodeToString(it) })
     }
@@ -31,14 +31,14 @@ object Session {
     fun signIn(result: SignedIn) {
         TokenStore.save(result.token)
         Api.token = result.token
-        setUser(result.user)
+        saveUser(result.user)
     }
 
     /** Refresca el usuario en segundo plano (un 401 cierra la sesión). */
     suspend fun refresh() {
         if (Api.token == null) return
         try {
-            setUser(Api.request<User>("GET", "/me"))
+            saveUser(Api.request<User>("GET", "/me"))
         } catch (e: CancellationException) {
             throw e
         } catch (ignored: Exception) {
@@ -48,7 +48,7 @@ object Session {
     /** Cambia el nombre o el celular (PATCH /me). */
     suspend fun update(fullName: String, phone: String): User {
         val updated = Api.request<User>("PATCH", "/me", body = jsonOf("full_name" to fullName, "phone" to phone))
-        setUser(updated)
+        saveUser(updated)
         return updated
     }
 
@@ -73,7 +73,7 @@ object Session {
         Nav.reset()
         TokenStore.delete()
         Api.token = null
-        setUser(null)
+        saveUser(null)
     }
 }
 

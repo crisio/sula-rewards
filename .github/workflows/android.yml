@@ -31,7 +31,7 @@ jobs:
           java-version: 17
       - uses: gradle/actions/setup-gradle@v4
       - name: Pruebas y lint
-        run: ./gradlew --stacktrace testDebugUnitTest lintDebug
+        run: ./gradlew testDebugUnitTest lintDebug
       - name: APK de prueba
         run: ./gradlew assembleDebug
       - name: Llave de subida
