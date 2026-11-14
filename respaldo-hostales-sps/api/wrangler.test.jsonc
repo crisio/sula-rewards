@@ -1,0 +1,7 @@
+// Igual que wrangler.jsonc pero sin la carpeta de la app (las pruebas no necesitan compilarla).
+{
+  "name": "hostales-sps",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-01",
+  "d1_databases": [{ "binding": "DB", "database_name": "hostales-sps", "migrations_dir": "migrations" }]
+}

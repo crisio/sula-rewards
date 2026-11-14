@@ -1,0 +1,17 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "hostales-sps",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-01",
+  "observability": { "enabled": true },
+  // La app (React) se publica junto con la API: lo que no es /api/* lo sirve Cloudflare desde dist/.
+  "assets": {
+    "directory": "../dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  // Al publicar por primera vez, Cloudflare crea la base de datos automáticamente.
+  "d1_databases": [{ "binding": "DB", "database_name": "hostales-sps", "migrations_dir": "migrations" }]
+  // Secreto (no va aquí): PIN_DUENO, el PIN con que el dueño entra la primera vez.
+}

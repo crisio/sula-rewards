@@ -1,0 +1,24 @@
+{
+  "name": "hostales-sps-api",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "db:migrate:remote": "wrangler d1 migrations apply DB --remote"
+  },
+  "dependencies": {
+    "hono": "^4.13.18"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-plugin": "^1.8.2",
+    "@cloudflare/workers-types": "^5.20261114.1",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0",
+    "wrangler": "^4.162.0"
+  }
+}

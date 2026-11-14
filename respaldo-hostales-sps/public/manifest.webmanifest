@@ -1,0 +1,15 @@
+{
+  "name": "Hostales SPS",
+  "short_name": "Hostales",
+  "description": "Recepción y supervisión de Hostal Prado Alto y ProKinto",
+  "lang": "es",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#101412",
+  "theme_color": "#101412",
+  "icons": [
+    { "src": "/icono.svg", "sizes": "any", "type": "image/svg+xml" },
+    { "src": "/icono-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icono-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

@@ -1,0 +1,7 @@
+fecha,habitacion,huesped,empresa,tipo,precio,pago
+01/10/2026,1,Juan Pérez,,Sencilla,1400,Efectivo
+01/10/2026,3,Carlos Mejía,Pepsi,Doble,,Crédito
+01/10/2026,5,María López,Grupo Comidas,Doble,,Crédito
+01/10/2026,6,Ana Ramos,,Triple,"2,000",T/C
+02/10/2026,1,Juan Pérez,,Sencilla,1400,Transferencia
+02/10/2026,8,,,Hora,500,Efectivo
